@@ -205,6 +205,8 @@ export default defineContentScript({
 
       private findTranslatableElements() {
         const elements: HTMLElement[] = [];
+        const translatedSet = new Set<HTMLElement>();
+
         const walker = document.createTreeWalker(
           document.body,
           NodeFilter.SHOW_TEXT,
@@ -221,12 +223,15 @@ export default defineContentScript({
                 return NodeFilter.FILTER_REJECT;
               }
 
+              // 检查是否在排除区域内
               if (this.hasExcludedAncestor(parent)) {
                 return NodeFilter.FILTER_REJECT;
               }
 
-              let translatableParent = this.findTranslatableParent(parent);
-              if (translatableParent) {
+              // 查找合适的翻译容器
+              const container = this.findTranslationContainer(parent);
+              if (container && !translatedSet.has(container)) {
+                translatedSet.add(container);
                 return NodeFilter.FILTER_ACCEPT;
               }
 
@@ -237,40 +242,40 @@ export default defineContentScript({
 
         let node;
         while ((node = walker.nextNode())) {
-          let parent = node.parentElement;
-          if (parent) {
-            if (this.hasExcludedAncestor(parent)) {
-              continue;
-            }
-
-            const translatableParent = this.findTranslatableParent(parent);
-            if (translatableParent) {
-              elements.push(translatableParent);
-            }
-          }
+          // 过滤器已经处理了逻辑，这里只需要收集被接受的元素
         }
 
-        return [...new Set(elements)];
+        return Array.from(translatedSet);
       }
 
-      private findTranslatableParent(element: HTMLElement): HTMLElement | null {
+      private findTranslationContainer(element: HTMLElement): HTMLElement | null {
         let current: HTMLElement | null = element;
+        let candidate: HTMLElement | null = null;
 
+        // 向上遍历，找到最合适的翻译容器
         while (current && current !== document.body) {
           const tag = current.tagName.toLowerCase();
 
+          // 如果当前元素应该被排除，返回之前找到的候选
           if (!this.shouldTranslateElement(current)) {
-            return null;
+            return candidate;
           }
 
-          if (['p', 'div', 'span', 'li', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'button', 'section', 'article'].includes(tag)) {
+          // 容器标签列表（这些标签适合作为翻译单元）
+          if (['p', 'div', 'section', 'article', 'aside', 'li', 'td', 'th', 'dt', 'dd', 'figcaption', 'caption'].includes(tag)) {
+            candidate = current;
+          }
+
+          // 如果是顶级容器（h1-h6），直接返回
+          if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
             return current;
           }
 
           current = current.parentElement;
         }
 
-        return null;
+        // 如果找到候选容器，返回它；否则返回 body
+        return candidate || document.body;
       }
 
       private shouldTranslateElement(element: HTMLElement): boolean {

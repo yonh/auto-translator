@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TextExtractor Unit Tests</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 { margin-top: 0; color: #111827; }
+
+    .container {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #2563eb; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: #f3f4f6;
+      padding: 16px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .summary-card .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .summary-card.passed .value { color: #10b981; }
+    .summary-card.failed .value { color: #ef4444; }
+
+    .results {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .test-result {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .test-result.passed {
+      background: #d1fae5;
+    }
+
+    .test-result.failed {
+      background: #fee2e2;
+    }
+
+    .test-name {
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .test-status {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .test-status.passed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .test-status.failed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <h1>TextExtractor Unit Tests</h1>
+
+  <div class="container">
+    <div class="controls">
+      <button onclick="runAllTests()">Run All Tests</button>
+      <button onclick="clearResults()">Clear</button>
+      <button id="run-demo-btn" onclick="runDemoTest()">Test on Demo HTML</button>
+    </div>
+
+    <div class="summary" id="summary">
+      <div class="summary-card">
+        <h3>Total</h3>
+        <p class="value" id="stat-total">0</p>
+      </div>
+      <div class="summary-card passed">
+        <h3>Passed</h3>
+        <p class="value" id="stat-passed">0</p>
+      </div>
+      <div class="summary-card failed">
+        <h3>Failed</h3>
+        <p class="value" id="stat-failed">0</p>
+      </div>
+    </div>
+
+    <div id="results" class="results"></div>
+  </div>
+
+  <script>
+    class TextExtractor {
+      constructor() {
+        this.excludeTags = ['script', 'style', 'noscript', 'iframe', 'svg', 'canvas', 'video', 'audio', 'code', 'pre', 'kbd', 'samp'];
+        this.containerTags = ['p', 'div', 'section', 'article', 'aside', 'li', 'td', 'th', 'dt', 'dd', 'figcaption', 'caption', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+      }
+
+      extract(root = document.body) {
+        const elements = [];
+        const processed = new Set();
+
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+          acceptNode: (node) => {
+            if (node instanceof HTMLElement) {
+              if (this.shouldExcludeElement(node)) return NodeFilter.FILTER_REJECT;
+              if (this.isTranslationContainer(node)) return NodeFilter.FILTER_ACCEPT;
+            }
+            return NodeFilter.FILTER_REJECT;
+          }
+        });
+
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node instanceof HTMLElement) {
+            const text = this.getElementText(node);
+            if (!text || text.length < 2) continue;
+            if (processed.has(node)) continue;
+            const isContained = this.isContainedInProcessed(node, processed, root);
+            if (isContained) continue;
+
+            processed.add(node);
+            elements.push(node);
+          }
+        }
+
+        return elements;
+      }
+
+      shouldExcludeElement(element) {
+        const tag = element.tagName.toLowerCase();
+        if (this.excludeTags.includes(tag)) return true;
+        if (element.getAttribute('translate') === 'no') return true;
+        if (element.getAttribute('data-translate') === 'false') return true;
+        if (typeof element.className === 'string' && element.className.includes('notranslate')) return true;
+        return false;
+      }
+
+      isTranslationContainer(element) {
+        const tag = element.tagName.toLowerCase();
+        if (!this.containerTags.includes(tag)) return false;
+        const text = this.getElementText(element);
+        if (text.length < 2) return false;
+        return true;
+      }
+
+      isContainedInProcessed(element, processed, root) {
+        let current = element.parentElement;
+        let isContained = false;
+        while (current && current !== root && !isContained) {
+          if (processed.has(current)) { isContained = true; }
+          current = current.parentElement;
+        }
+        return isContained;
+      }
+
+      getElementText(element) {
+        const text = element.textContent?.trim() || '';
+        return text.replace(/\s+/g, ' ');
+      }
+    }
+
+    const tests = [
+      {
+        name: 'Basic Extraction',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<p>This is a simple paragraph.</p>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length >= 1 && elements[0].textContent?.trim() === 'This is a simple paragraph.',
+            message: 'Should extract simple paragraph'
+          };
+        }
+      },
+      {
+        name: 'Exclusion Logic',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<p>Normal text</p><pre><code>const x = 1;</code></pre><p>Another paragraph</p>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length === 2 && !elements.some(el => el.textContent?.includes('const x = 1;')),
+            message: 'Should exclude code blocks'
+          };
+        }
+      },
+      {
+        name: 'Minimum Length (exclude < 2 chars)',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<p>A</p>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length === 0,
+            message: 'Should exclude single character'
+          };
+        }
+      },
+      {
+        name: 'Minimum Length (include >= 2 chars)',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<p>AB</p>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length === 1 && elements[0].textContent?.trim() === 'AB',
+            message: 'Should include two character element'
+          };
+        }
+      },
+      {
+        name: 'List Extraction',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<ul><li>Item 1</li><li>Item 2</li></ul>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length === 2 && elements.every(el => el.tagName.toLowerCase() === 'li'),
+            message: 'Should extract 2 list items'
+          };
+        }
+      },
+      {
+        name: 'No Duplicates',
+        test: () => {
+          const container = document.createElement('div');
+          container.innerHTML = '<div><p>Outer paragraph text</p></div>';
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          const hasP = elements.some(el => el.tagName.toLowerCase() === 'p');
+          const hasDiv = elements.some(el => el.tagName.toLowerCase() === 'div');
+          const texts = elements.map(el => el.textContent?.trim());
+          const uniqueTexts = new Set(texts);
+
+          return {
+            passed: (hasP || hasDiv) && !(hasP && hasDiv) && texts.length === uniqueTexts.size,
+            message: 'Should not extract duplicates'
+          };
+        }
+      },
+      {
+        name: 'Quantity (> 20 elements)',
+        test: () => {
+          const container = document.createElement('div');
+          const html = Array(25).fill(0).map((_, i) =>
+            `<p>This is paragraph ${i + 1}. It has some content that should be translated.</p>`
+          ).join('');
+          container.innerHTML = html;
+
+          const extractor = new TextExtractor();
+          const elements = extractor.extract(container);
+
+          return {
+            passed: elements.length > 20,
+            message: `Should extract more than 20 elements, got ${elements.length}`
+          };
+        }
+      }
+    ];
+
+    function runAllTests() {
+      const results = document.getElementById('results');
+      results.innerHTML = '';
+
+      let passed = 0;
+      let failed = 0;
+
+      tests.forEach((test, index) => {
+        let result;
+        try {
+          result = test.test();
+          passed++;
+        } catch (error) {
+          console.error(`Error in test ${test.name}:`, error);
+          failed++;
+          result = { passed: false, message: error.message };
+        }
+
+        const div = document.createElement('div');
+        div.className = `test-result ${result.passed ? 'passed' : 'failed'}`;
+        div.innerHTML = `
+          <div class="test-name">${test.name}</div>
+          <div class="test-status ${result.passed ? 'passed' : 'failed'}">${result.passed ? 'PASS' : 'FAIL'}</div>
+          <div style="font-size: 14px; color: #6b7280;">${result.message}</div>
+        `;
+        results.appendChild(div);
+      });
+
+      document.getElementById('stat-total').textContent = tests.length;
+      document.getElementById('stat-passed').textContent = passed;
+      document.getElementById('stat-failed').textContent = failed;
+
+      console.log('=== Test Complete ===');
+      console.log(`Total: ${tests.length}, Passed: ${passed}, Failed: ${failed}`);
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('stat-total').textContent = '0';
+      document.getElementById('stat-passed').textContent = '0';
+      document.getElementById('stat-failed').textContent = '0';
+    }
+
+    function runDemoTest() {
+      console.log('=== Testing on Demo HTML ===');
+
+      const extractor = new TextExtractor();
+      const elements = extractor.extract(document.body);
+
+      console.log(`Total elements extracted: ${elements.length}`);
+
+      const targetText = "This package aims to be the entry point to get started with event sourcing in Laravel. It can help you setting up aggregates, projectors and reactors.";
+      const targetFound = elements.some(el => {
+        const text = el.textContent?.trim() || '';
+        return text === targetText;
+      });
+
+      console.log(`Target text "${targetText.substring(0, 80)}..." found: ${targetFound ? 'YES' : 'NO'}`);
+
+      if (targetFound) {
+        console.log('✅ SUCCESS: Target paragraph was extracted!');
+      } else {
+        console.log('❌ FAILURE: Target paragraph was NOT extracted!');
+        console.log('Search for target text...');
+        const partialMatches = elements.filter(el => {
+          const text = el.textContent?.trim() || '';
+          return text.includes('event sourcing') && text.includes('Laravel');
+        });
+
+        console.log(`Found ${partialMatches.length} elements containing "event sourcing" and "Laravel":`);
+        partialMatches.forEach((el, i) => {
+          console.log(`  ${i + 1}. [${el.tagName.toLowerCase()}] ${el.textContent?.trim().substring(0, 100)}...`);
+        });
+      }
+
+      alert(`Demo test complete!\n\nTotal elements: ${elements.length}\nTarget found: ${targetFound ? 'YES' : 'NO'}\n\nCheck console for details.`);
+    }
+
+    console.log('Unit tests loaded. Click "Run All Tests" to execute.');
+    console.log('Or click "Test on Demo HTML" to test extraction on demo.html');
+  </script>
+</body>
+</html>

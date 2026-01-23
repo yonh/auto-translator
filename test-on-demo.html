@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test on Demo HTML</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 { margin-top: 0; }
+
+    .controls {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .controls button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .controls button:hover {
+      background: #2563eb;
+    }
+
+    .target-status {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .target-status.found {
+      background: #d1fae5;
+      color: #065f46;
+      border-left: 4px solid #10b981;
+    }
+
+    .target-status.not-found {
+      background: #fee2e2;
+      color: #991b1b;
+      border-left: 4px solid #ef4444;
+    }
+
+    .output {
+      display: grid;
+      gap: 12px;
+    }
+
+    .element-card {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #3b82f6;
+    }
+
+    .element-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .element-card pre {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 0;
+      overflow-x: auto;
+      font-size: 13px;
+      max-height: 200px;
+    }
+
+    .element-info {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+      display: flex;
+      gap: 16px;
+    }
+
+    .stats {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-item h3 {
+      margin: 0 0 4px 0;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .stat-item .value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <h1>Text Extraction Test on Demo HTML</h1>
+
+  <div class="controls">
+    <button onclick="runExtraction()">Run Extraction</button>
+    <button onclick="clearResults()">Clear</button>
+  </div>
+
+  <div id="target-status" class="target-status">
+    Status: Ready
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat-item">
+      <h3>Elements Found</h3>
+      <p class="value" id="stat-count">0</p>
+    </div>
+    <div class="stat-item">
+      <h3>Total Characters</h3>
+      <p class="value" id="stat-chars">0</p>
+    </div>
+    <div class="stat-item">
+      <h3>Avg Length</h3>
+      <p class="value" id="stat-avg">0</p>
+    </div>
+  </div>
+
+  <div id="output" class="output"></div>
+
+  <script>
+    class TextExtractor {
+      constructor() {
+        this.excludeTags = ['script', 'style', 'noscript', 'iframe', 'svg', 'canvas', 'video', 'audio', 'code', 'pre', 'kbd', 'samp'];
+        this.containerTags = ['p', 'div', 'section', 'article', 'aside', 'li', 'td', 'th', 'dt', 'dd', 'figcaption', 'caption', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        this.stats = {
+          checks: 0,
+          accepted: 0,
+          rejected: 0,
+          excluded: 0,
+          contained: 0
+        };
+      }
+
+      extract(root) {
+        const results = [];
+        const processed = new Set();
+        this.resetStats();
+
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, {
+          acceptNode: (node) => {
+            this.stats.checks++;
+            if (node instanceof HTMLElement) {
+              if (this.shouldExcludeElement(node)) {
+                this.stats.excluded++;
+                return NodeFilter.FILTER_REJECT;
+              }
+              if (this.isTranslationContainer(node)) {
+                this.stats.accepted++;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              this.stats.rejected++;
+            }
+            return NodeFilter.FILTER_REJECT;
+          }
+        });
+
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node instanceof HTMLElement) {
+            const text = this.getElementText(node);
+            if (!text || text.length < 2) continue;
+            if (processed.has(node)) continue;
+
+            const isContained = this.isContainedInProcessed(node, processed);
+            if (isContained) {
+              this.stats.contained++;
+              continue;
+            }
+
+            processed.add(node);
+            results.push(node);
+          }
+        }
+
+        return results;
+      }
+
+      resetStats() {
+        this.stats = {
+          checks: 0,
+          accepted: 0,
+          rejected: 0,
+          excluded: 0,
+          contained: 0
+        };
+      }
+
+      getStats() {
+        return { ...this.stats };
+      }
+
+      shouldExcludeElement(element) {
+        const tag = element.tagName.toLowerCase();
+        if (this.excludeTags.includes(tag)) return true;
+        if (element.getAttribute('translate') === 'no') return true;
+        if (element.getAttribute('data-translate') === 'false') return true;
+        if (typeof element.className === 'string' && element.className.includes('notranslate')) return true;
+        return false;
+      }
+
+      isTranslationContainer(element) {
+        const tag = element.tagName.toLowerCase();
+        if (!this.containerTags.includes(tag)) return false;
+        const text = this.getElementText(element);
+        if (text.length < 2) return false;
+        const directText = this.getDirectText(element);
+        const childContainers = this.getChildContainers(element);
+        if (childContainers.length === 0) return directText.trim().length > 0;
+        if (directText.trim().length === 0) return false;
+        const totalTextLength = text.length;
+        const directTextLength = directText.length;
+        const directTextRatio = directTextLength / totalTextLength;
+        if (directTextRatio >= 0.5) return true;
+        if (childContainers.length === 1) {
+          const childText = this.getElementText(childContainers[0]);
+          if (childText.length > totalTextLength * 0.8) return false;
+        }
+        return true;
+      }
+
+      getChildContainers(element) {
+        const children = [];
+        for (let i = 0; i < element.children.length; i++) {
+          const child = element.children[i];
+          if (this.containerTags.includes(child.tagName.toLowerCase())) {
+            children.push(child);
+          }
+        }
+        return children;
+      }
+
+      getElementText(element) {
+        const text = element.textContent?.trim() || '';
+        return text.replace(/\s+/g, ' ');
+      }
+
+      getDirectText(element) {
+        let text = '';
+        for (const node of element.childNodes) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            text += node.textContent;
+          }
+        }
+        return text.replace(/\s+/g, ' ');
+      }
+
+      isContainedInProcessed(element, processed) {
+        let current = element.parentElement;
+        let isContained = false;
+        while (current && current !== document.body && !isContained) {
+          if (processed.has(current)) {
+            isContained = true;
+          }
+          current = current.parentElement;
+        }
+        return isContained;
+      }
+    }
+
+    function runExtraction() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      const extractor = new TextExtractor();
+      const elements = extractor.extract(document.body);
+
+      const stats = extractor.getStats();
+
+      const totalChars = elements.reduce((sum, el) => sum + (el.textContent?.trim().length || 0), 0);
+      const avgLength = elements.length > 0 ? Math.round(totalChars / elements.length) : 0;
+
+      document.getElementById('stat-count').textContent = elements.length;
+      document.getElementById('stat-chars').textContent = totalChars;
+      document.getElementById('stat-avg').textContent = avgLength;
+
+      const targetText = "This package aims to be the entry point to get started with event sourcing in Laravel. It can help you setting up aggregates, projectors and reactors.";
+      let targetFound = false;
+      let targetElement = null;
+      let matchedBy = '';
+
+      elements.forEach((el, i) => {
+        const text = el.textContent?.trim() || '';
+
+        if (text.includes("event sourcing in Laravel") && text.includes("aggregates, projectors and reactors")) {
+          targetFound = true;
+          targetElement = el;
+
+          if (text === targetText) {
+            matchedBy = 'EXACT MATCH';
+          } else if (text.length > targetText.length) {
+            matchedBy = 'CONTAINS (longer)';
+          } else {
+            matchedBy = 'CONTAINS (shorter)';
+          }
+        }
+      });
+
+      const statusDiv = document.getElementById('target-status');
+      if (targetFound) {
+        statusDiv.className = 'target-status found';
+        statusDiv.innerHTML = `
+          ✅ <strong>Target paragraph FOUND!</strong><br><br>
+          Target: "${targetText.substring(0, 80)}... (${targetText.length} chars)<br><br>
+          Found: "${targetElement.textContent?.trim().substring(0, 80)}..." (${targetElement.textContent?.trim().length} chars)<br><br>
+          Matched by: <strong>${matchedBy}</strong>
+        `;
+      } else {
+        statusDiv.className = 'target-status not-found';
+        statusDiv.innerHTML = `
+          ❌ <strong>Target paragraph NOT FOUND!</strong><br><br>
+          Target: "${targetText}"<br><br>
+          This paragraph should be extracted but wasn't found.
+        `;
+      }
+
+      console.log('=== Extraction Results ===');
+      console.log('Elements found:', elements.length);
+      console.log('Stats:', stats);
+      console.log('Target found:', targetFound);
+      console.log('Matched by:', matchedBy);
+
+      elements.forEach((el, i) => {
+        const text = el.textContent?.trim() || '';
+        const card = document.createElement('div');
+        card.className = 'element-card';
+        card.innerHTML = `
+          <h3>Element ${i + 1} &lt;${el.tagName.toLowerCase()}&gt;</h3>
+          <pre>${escapeHtml(text.substring(0, 300))}${text.length > 300 ? '...' : ''}</pre>
+          <div class="element-info">
+            <div><strong>Length:</strong> ${text.length}</div>
+            <div><strong>Direct text:</strong> ${extractor.getDirectText(el).trim().length > 0 ? 'Yes' : 'No'}</div>
+            <div><strong>Children:</strong> ${extractor.getChildContainers(el).length}</div>
+          </div>
+        `;
+        output.appendChild(card);
+      });
+    }
+
+    function clearResults() {
+      document.getElementById('output').innerHTML = '';
+      document.getElementById('target-status').className = 'target-status';
+      document.getElementById('target-status').textContent = 'Status: Ready';
+      document.getElementById('stat-count').textContent = '0';
+      document.getElementById('stat-chars').textContent = '0';
+      document.getElementById('stat-avg').textContent = '0';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    console.log('Page loaded. Click "Run Extraction" to test.');
+    console.log('Target text to find:');
+    console.log('"This package aims to be the entry point to get started with event sourcing in Laravel. It can help you setting up aggregates, projectors and reactors."');
+  </script>
+</body>
+</html>

@@ -1,0 +1,1003 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover">
+
+<link rel="dns-prefetch" href="https://cloud.typography.com">
+<link rel="dns-prefetch" href="https://pro.fontawesome.com">
+
+<title>Introduction | laravel-event-sourcing | Spatie</title>
+
+<meta name="description" content="laravel-event-sourcing">
+<meta property="og:title" content="Introduction | laravel-event-sourcing"/>
+<meta property="og:description" content="laravel-event-sourcing"/>
+<meta property="og:image" content="https://spatie.be/images/og-image.jpg"/>
+<meta property="og:url" content="https://spatie.be/docs/laravel-event-sourcing/v7/introduction"/>
+<meta property="og:type" content="website" />
+
+    <link rel="canonical" href="https://spatie.be/docs/laravel-event-sourcing/v7/introduction" />
+
+
+<!-- Ld+Json -->
+<script type="application/ld+json">
+    {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Introduction | laravel-event-sourcing",
+  "description": "laravel-event-sourcing",
+  "url": "https://spatie.be/docs/laravel-event-sourcing/v7/introduction",
+  "image": "https://spatie.be/images/og-image.jpg",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Spatie",
+    "url": "https://spatie.be"
+  },
+  "potentialAction": {
+    "@type": "ReadAction",
+    "target": "https://spatie.be/docs/laravel-event-sourcing/v7/introduction"
+  },
+  "mainEntityOfPage": "https://spatie.be/docs/laravel-event-sourcing/v7/introduction"
+}
+</script>
+
+    <link rel="stylesheet" href="https://cloud.typography.com/6194432/6145752/css/fonts.css">
+    <!-- Livewire Styles --><style >[wire\:loading][wire\:loading], [wire\:loading\.delay][wire\:loading\.delay], [wire\:loading\.inline-block][wire\:loading\.inline-block], [wire\:loading\.inline][wire\:loading\.inline], [wire\:loading\.block][wire\:loading\.block], [wire\:loading\.flex][wire\:loading\.flex], [wire\:loading\.table][wire\:loading\.table], [wire\:loading\.grid][wire\:loading\.grid], [wire\:loading\.inline-flex][wire\:loading\.inline-flex] {display: none;}[wire\:loading\.delay\.none][wire\:loading\.delay\.none], [wire\:loading\.delay\.shortest][wire\:loading\.delay\.shortest], [wire\:loading\.delay\.shorter][wire\:loading\.delay\.shorter], [wire\:loading\.delay\.short][wire\:loading\.delay\.short], [wire\:loading\.delay\.default][wire\:loading\.delay\.default], [wire\:loading\.delay\.long][wire\:loading\.delay\.long], [wire\:loading\.delay\.longer][wire\:loading\.delay\.longer], [wire\:loading\.delay\.longest][wire\:loading\.delay\.longest] {display: none;}[wire\:offline][wire\:offline] {display: none;}[wire\:dirty]:not(textarea):not(input):not(select) {display: none;}:root {--livewire-progress-bar-color: #2299dd;}[x-cloak] {display: none !important;}[wire\:cloak] {display: none !important;}dialog#livewire-error::backdrop {background-color: rgba(0, 0, 0, .6);}</style>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#007593">
+<meta name="theme-color" content="#ffffff">
+    <link rel="alternate" type="application/atom+xml" href="https://spatie.be/feeds/team-members-products" title="Spatie: Team members &amp; products">
+    <link rel="alternate" type="application/atom+xml" href="https://spatie.be/feeds/blog" title="Spatie: Blog">
+
+    <link rel="preload" as="style" href="https://spatie.be/build/assets/app-BUdhjpOc.css" /><link rel="modulepreload" href="https://spatie.be/build/assets/app-6UZZzvdv.js" /><link rel="modulepreload" href="https://spatie.be/build/assets/_commonjsHelpers-Cpj98o6Y.js" /><link rel="stylesheet" href="https://spatie.be/build/assets/app-BUdhjpOc.css" data-navigate-track="reload" /><script type="module" src="https://spatie.be/build/assets/app-6UZZzvdv.js" data-navigate-track="reload"></script>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer', 'GTM-WGCBMG');</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    
+        <link rel="stylesheet" href="https://spatie.be/_laravel-comments-livewire/styles.css?v=3.2.1">
+</head>
+
+<body class="flex flex-col min-h-screen leading-normal antialiased bg-oss-gray font-pt antialiased font-medium text-oss-royal-blue leading-[1.4]">
+    <script>/* Empty script tag because Firefox has a FOUC */</script>
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGCBMG"
+                  height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+
+    
+    
+    
+
+    
+    <div class="px-3 sm:px-12 font-pt antialiased font-medium">
+    <header
+        x-data="{ open: window.innerWidth >= 720 }"
+        x-on:click.outside="() => {
+            if (window.innerWidth >= 720) return;
+            open = false
+        }"
+        x-on:resize.window="open = window.innerWidth >= 720"
+        class="p-5 sm:px-[40px] sm:py-[30px] sm:flex z-10 my-5 rounded | bg-white shadow-light | font-pt antialiased font-medium | print:bg-transparent print:shadow-none"
+    >
+         <div class="flex justify-between leading-loose | sm:leading-none sm:block">
+             <a class="shrink-0 logo h-8 w-20 block | sm:mb-0 sm:w-36" href="/" title="Home">
+                 <span class="absolute h-8 sm:h-14 ">
+                    <svg class="w-auto h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 255.12"><defs><style>.fill-current text-blue{fill:#197593;}.fill-current text-white{fill:#FFFFFF;}</style></defs><title>SPATIE</title> <g><path class="fill-current text-blue" d="M0,9.77A10,10,0,0,1,10.26,0H585a10,10,0,0,1,10.28,9.77V245.36A10,10,0,0,1,585,255.12H10.26A10,10,0,0,1,0,245.36V9.77Z"></path></g><g><path d="M95.6,156.66l10.87-14.84c6.46,5.32,13.82,8.95,21.52,8.95,5.44,0,8.27-2.38,8.27-5.78v-0.11c0-3.17-2.38-5.1-11.67-8.38-14.95-5.1-25.48-10.53-25.48-24.92v-0.34c0-14.38,11-24.46,28.31-24.46,10.65,0,20,2.94,28.31,9.63l-10.31,15.17c-5.44-4.19-12-7.25-18.46-7.25-4.64,0-7.25,2.27-7.25,5.21v0.11c0,3.51,2.49,5.32,12.57,9.06,15.06,4.87,24.46,11,24.46,24.46v0.23c0,15.4-11.89,24.92-28.88,24.92A48.26,48.26,0,0,1,95.6,156.66Z" class="fill-current text-white"></path><path d="M175.67,87.92H204c18.69,0,30.92,9.74,30.92,27.52v0.45c0,19-13.82,28.09-31.14,28.31h-7.81v23H175.67V87.92Zm27.41,39.64c7.13,0,11.44-4.19,11.44-10.87v-0.34c0-7.25-4.19-11-11.55-11h-7v22.2h7.13Z" class="fill-current text-white"></path><path d="M267.17,87.47h20.61l28,79.73h-21.4l-4.64-14.27H264.8l-4.53,14.27h-21Zm17.44,49.15-7.36-23.22-7.36,23.22h14.72Z" class="fill-current text-white"></path><path d="M338.64,106.27H319V87.92h59.57v18.35H359V167.2H338.64V106.27Z" class="fill-current text-white"></path><path d="M396.17,87.92h20.39V167.2H396.17V87.92Z" class="fill-current text-white"></path><path d="M444.64,87.92h54.59v17.89H464.8v13h31v16.88h-31V149.3h34.88V167.2h-55V87.92Z" class="fill-current text-white"></path></g></svg>
+                 </span>
+             </a>
+
+             <button x-on:click="open = !open" class="flex items-center gap-x-2 text-black sm:hidden">
+                 <svg x-cloak x-show="!open" class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 12"><path fill="#172A3D" d="M0 0h14v2H0V0Zm0 5h14v2H0V5Zm14 5v2H0v-2h14Z"/></svg>
+                 <svg x-cloak x-show="open" class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path fill="#172A3D" d="M2.148.718 1.433 0 0 1.433l.715.715L5.567 7 .718 11.852 0 12.567 1.433 14l.715-.715L7 8.433l4.852 4.849.715.718L14 12.567l-.715-.715L8.433 7l4.849-4.852.718-.715L12.567 0l-.715.718L7 5.568 2.148.717Z"/></svg>
+                 <span class="text-[14px]">Menu</span>
+             </button>
+        </div>
+         <div x-show.important="open" x-cloak x-transition class="mt-4 sm:mt-0 sm:h-14 grid items-start gap-x-8 | sm:gap-y-4 sm:justify-end sm:justify-items-end sm:ml-auto">
+             <hr class="h-px bg-oss-gray sm:hidden -mx-5 mb-5" />
+             <nav class="flex | sm:row-start-2 mb-5 sm:mb-0 text-oss-royal-blue">
+                 <ul class=" grid sm:grid-flow-col gap-3 sm:gap-4 md:gap-6 sm:justify-between md:text-lg | print:hidden"><li><a href="https://spatie.be/products">Products</a></li><li><a href="https://spatie.be/open-source">Open Source</a></li><li><a href="https://spatie.be/courses">Courses</a></li><li><a href="https://spatie.be/web-development">Web Development</a></li></ul>
+             </nav>
+             <nav class="grid text-base | sm:opacity-75 sm:row-start-1 sm:grid-flow-col sm:items-center gap-4 sm:text-sm | print:hidden">
+                 <a href="https://spatie.be/vacancies" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Vacancies</a><a href="https://spatie.be/about-us" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">About</a><a href="https://spatie.be/blog" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Blog</a><a href="https://spatie.be/docs" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue font-bold">Docs</a><a href="https://spatie.be/guidelines" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Guidelines</a><a href="https://spatie.myspreadshop.net" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Merch ↗</a><a href="https://spatie.be/login">
+    <span class="icon fill-current text-oss-royal-blue" title="Log in">
+        <span class="mr-2 md:hidden">Log in</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M313.6 304c-28.7 0-42.5 16-89.6 16-47.1 0-60.8-16-89.6-16C60.2 304 0 364.2 0 438.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-25.6c0-74.2-60.2-134.4-134.4-134.4zM400 464H48v-25.6c0-47.6 38.8-86.4 86.4-86.4 14.6 0 38.3 16 89.6 16 51.7 0 74.9-16 89.6-16 47.6 0 86.4 38.8 86.4 86.4V464zM224 288c79.5 0 144-64.5 144-144S303.5 0 224 0 80 64.5 80 144s64.5 144 144 144zm0-240c52.9 0 96 43.1 96 96s-43.1 96-96 96-96-43.1-96-96 43.1-96 96-96z"/></svg>
+    </span>
+</a>
+
+             </nav>
+         </div>
+    </header>
+</div>
+    
+    <main class="flex-grow ">
+        <div class="px-3 sm:px-12">
+        <section id="breadcrumb" class="hidden md:block max-w-screen-xl mx-auto w-full text-[14px]">
+    <p class="text-oss-royal-blue ">
+        <a wire:navigate href="https://spatie.be/docs">Docs</a>
+        <span class="icon mx-2 fill-current text-oss-royal-blue-light"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M187.8 264.5L41 412.5c-4.7 4.7-12.3 4.7-17 0L4.2 392.7c-4.7-4.7-4.7-12.3 0-17L122.7 256 4.2 136.3c-4.7-4.7-4.7-12.3 0-17L24 99.5c4.7-4.7 12.3-4.7 17 0l146.8 148c4.7 4.7 4.7 12.3 0 17z"/></svg>
+<!--
+Font Awesome Pro 5.2.0 by @fontawesome - https://fontawesome.com
+License - https://fontawesome.com/license (Commercial License)
+--></span>
+        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7"
+        >Laravel-event-sourcing</a>
+                <span class="icon mx-2 fill-current text-oss-royal-blue-light"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M187.8 264.5L41 412.5c-4.7 4.7-12.3 4.7-17 0L4.2 392.7c-4.7-4.7-4.7-12.3 0-17L122.7 256 4.2 136.3c-4.7-4.7-4.7-12.3 0-17L24 99.5c4.7-4.7 12.3-4.7 17 0l146.8 148c4.7 4.7 4.7 12.3 0 17z"/></svg>
+<!--
+Font Awesome Pro 5.2.0 by @fontawesome - https://fontawesome.com
+License - https://fontawesome.com/license (Commercial License)
+--></span>
+        <span>Introduction</span>
+    </p>
+</section>
+
+        <section class="max-w-screen-xl mx-auto w-full md:grid pb-24 gap-16 md:grid-cols-10 items-stretch md:mt-10">
+            <div class="z-10 | md:col-span-3 | lg:col-span-2 | print:hidden">
+                <nav class="h-full">
+    <div class="w-full mb-5">
+        <div class="relative">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search..."
+                class="cursor-pointer w-full rounded px-5 py-2.5 text-sm"
+                x-data="{}"
+                x-on:click.prevent="$store.modals.open('search-modal')"
+                readonly
+            />
+            <svg class="w-6 h-6 right-0 top-0 mt-2 mr-2.5 absolute" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="#3A3C3E" stroke-width="2" d="m19 19-4-4m-4 2a6 6 0 1 1 0-12 6 6 0 0 1 0 12Z"/></svg>
+        </div>
+            </div>
+
+    <div class="flex w-full items-center gap-5 mb-10">
+        <label for="alias" class="text-oss-royal-blue-light">Version</label>
+        <div class="w-full leading-normal select bg-transparent p-0 border rounded border-oss-gray-medium">
+            <select id="alias" class="text-oss-royal-blue w-full font-medium rounded-[4px] px-5 py-2.5 border-oss-gray-medium outline-none font-pt" name="alias"
+                    onChange="location='/docs/laravel-event-sourcing/' + this.options[this.selectedIndex].value">
+                                    <option value="v7" selected=&quot;selected&quot;>
+                        v7
+                    </option>
+                                    <option value="v6" >
+                        v6
+                    </option>
+                                    <option value="v5" >
+                        v5
+                    </option>
+                                    <option value="v4" >
+                        v4
+                    </option>
+                                    <option value="v3" >
+                        v3
+                    </option>
+                                    <option value="v2" >
+                        v2
+                    </option>
+                                    <option value="v1" >
+                        v1
+                    </option>
+                            </select>
+            <span class="select-arrow mr-4">
+                <svg class="w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 7"><path fill="#050508" d="m5 6.61.471-.47 4-4 .473-.473L9 .723l-.47.47L5 4.724 1.471 1.196l-.47-.473-.944.944.47.47 4 4L5 6.61Z"/></svg>
+            </span>
+        </div>
+    </div>
+
+    <div class="hidden">
+        Other versions for crawler
+
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v7">v7</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v6">v6</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v5">v5</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v4">v4</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v3">v3</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v2">v2</a>
+                    <a href="https://spatie.be/docs/laravel-event-sourcing/v1">v1</a>
+            </div>
+
+    <ol class="grid gap-2">
+                    
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/introduction" class=" font-bold text-blue ">
+                            Introduction
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/support-us" class=" text-oss-royal-blue ">
+                            Support us
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/requirements" class=" text-oss-royal-blue ">
+                            Requirements
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/installation-setup" class=" text-oss-royal-blue ">
+                            Installation &amp; setup
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/questions-issues" class=" text-oss-royal-blue ">
+                            Questions and issues
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/changelog" class=" text-oss-royal-blue ">
+                            Changelog
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/upgrading" class=" text-oss-royal-blue ">
+                            Upgrading
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/resources-and-alternatives" class=" text-oss-royal-blue ">
+                            Resources and alternatives
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/about-us" class=" text-oss-royal-blue ">
+                            About us
+                        </a>
+                    </li>
+                            </ul>
+                                    <h2 class="text-base font-bold mb-2">Getting familiar with event sourcing</h2>
+            
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/getting-familiar-with-event-sourcing/introduction" class=" text-oss-royal-blue ">
+                            Introduction
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/getting-familiar-with-event-sourcing/the-traditional-application" class=" text-oss-royal-blue ">
+                            The traditional application
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/getting-familiar-with-event-sourcing/using-projectors-to-transform-events" class=" text-oss-royal-blue ">
+                            Using projectors to transform events
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/getting-familiar-with-event-sourcing/using-aggregates-to-make-decisions-based-on-the-past" class=" text-oss-royal-blue ">
+                            Using aggregates to make decisions based on the past
+                        </a>
+                    </li>
+                            </ul>
+                                    <h2 class="text-base font-bold mb-2">Using projectors</h2>
+            
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-projectors/writing-your-first-projector" class=" text-oss-royal-blue ">
+                            Writing your first projector
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-projectors/creating-and-configuring-projectors" class=" text-oss-royal-blue ">
+                            Creating and registering projectors
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-projectors/making-sure-events-get-handled-in-the-right-order" class=" text-oss-royal-blue ">
+                            Making sure events get handled in the right order
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-projectors/thinking-in-events" class=" text-oss-royal-blue ">
+                            Thinking in events
+                        </a>
+                    </li>
+                            </ul>
+                                    <h2 class="text-base font-bold mb-2">Using reactors</h2>
+            
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-reactors/writing-your-first-reactor" class=" text-oss-royal-blue ">
+                            Writing your first reactor
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-reactors/creating-and-configuring-reactors" class=" text-oss-royal-blue ">
+                            Creating and configuring reactors
+                        </a>
+                    </li>
+                            </ul>
+                                    <h2 class="text-base font-bold mb-2">Using aggregates</h2>
+            
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-aggregates/writing-your-first-aggregate" class=" text-oss-royal-blue ">
+                            Writing your first aggregate
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-aggregates/creating-and-configuring-aggregates" class=" text-oss-royal-blue ">
+                            Creating and configuring aggregates
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-aggregates/testing-aggregates" class=" text-oss-royal-blue ">
+                            Testing aggregates
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/using-aggregates/snapshots" class=" text-oss-royal-blue ">
+                            Snapshots
+                        </a>
+                    </li>
+                            </ul>
+                                    <h2 class="text-base font-bold mb-2">Advanced usage</h2>
+            
+            <ul class="space-y-2 mb-8">
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/preparing-events" class=" text-oss-royal-blue ">
+                            Preparing events
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/replaying-events" class=" text-oss-royal-blue ">
+                            Replaying events
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/storing-metadata" class=" text-oss-royal-blue ">
+                            Storing metadata
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/handling-exceptions" class=" text-oss-royal-blue ">
+                            Handling exceptions
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/discovering-projectors-and-reactors" class=" text-oss-royal-blue ">
+                            Discovering projectors and reactors
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/using-your-own-event-storage-model" class=" text-oss-royal-blue ">
+                            Using your own event storage model
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/using-your-own-event-storage-repository" class=" text-oss-royal-blue ">
+                            Using your own event storage repository
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/using-your-own-event-serializer" class=" text-oss-royal-blue ">
+                            Using your own event serializer
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/using-aliases-for-stored-event-classes" class=" text-oss-royal-blue ">
+                            Using aliases for stored event classes
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/adding-and-removing-projectors-and-reactors" class=" text-oss-royal-blue ">
+                            Adding and Removing Projectors and Reactors
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/aggregate-partials" class=" text-oss-royal-blue ">
+                            Aggregate Partials
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/event-queries" class=" text-oss-royal-blue ">
+                            Event Queries
+                        </a>
+                    </li>
+                                    <li class="leading-snug">
+                        <a wire:navigate href="https://spatie.be/docs/laravel-event-sourcing/v7/advanced-usage/commands" class=" text-oss-royal-blue ">
+                            Commands
+                        </a>
+                    </li>
+                            </ul>
+            </ol>
+</nav>
+
+            </div>
+            <article class="md:col-span-7 lg:col-span-6">
+                
+                                                            <style>
+    :root {
+        --accent-color: #2B7FFF;
+                --button-text-color: #fff;
+            }
+</style>
+
+<div class="docs-branded-header bg-oss-gray-light p-8 md:p-14 rounded-[8px] text-[18px] mb-5">
+    <div class="absolute w-full flex justify-center left-0 right-0 top-0">
+        <svg width="780" height="140" viewBox="0 0 780 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g opacity="0.3" filter="url(#filter0_f_36_5504)">
+                <ellipse cx="390" rx="300" ry="50" fill="#2B7FFF"/>
+            </g>
+            <defs>
+                <filter id="filter0_f_36_5504" x="0" y="-140" width="780" height="280" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                    <feGaussianBlur stdDeviation="45" result="effect1_foregroundBlur_36_5504"/>
+                </filter>
+            </defs>
+        </svg>
+    </div>
+
+    <div class="flex items-center space-x-6 mb-10">
+        <div class="logo">
+            <svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 72C0 46.7976 0 34.1965 4.90471 24.5704C9.21901 16.1031 16.1031 9.21901 24.5704 4.90471C34.1965 0 46.7976 0 72 0H120C145.202 0 157.804 0 167.43 4.90471C175.897 9.21901 182.781 16.1031 187.095 24.5704C192 34.1965 192 46.7976 192 72V120C192 145.202 192 157.804 187.095 167.43C182.781 175.897 175.897 182.781 167.43 187.095C157.804 192 145.202 192 120 192H72C46.7976 192 34.1965 192 24.5704 187.095C16.1031 182.781 9.21901 175.897 4.90471 167.43C0 157.804 0 145.202 0 120V72Z" fill="#2B7FFF"/>
+<mask id="mask0_203_20285" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="192" height="192">
+<rect width="192" height="192" fill="url(#paint0_linear_203_20285)"/>
+</mask>
+<g mask="url(#mask0_203_20285)">
+<circle cx="62.0838" cy="71.1577" r="16" transform="rotate(-12.5 62.0838 71.1577)" stroke="white" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="101.137" cy="62.5002" r="16" transform="rotate(-12.5 101.137 62.5002)" stroke="white" stroke-width="10" stroke-linejoin="round"/>
+<rect x="50.25" y="91.7058" width="72" height="54" rx="6" transform="rotate(-12.5 50.25 91.7058)" stroke="white" stroke-width="10" stroke-linejoin="round"/>
+<path d="M125.019 93.9429C124.719 92.5877 125.387 91.2034 126.635 90.596L142.353 82.9477C144.096 82.0993 146.174 83.1029 146.594 84.9959L152.091 109.79C152.511 111.683 151.051 113.471 149.112 113.439L131.635 113.15C130.247 113.127 129.057 112.154 128.756 110.799L125.019 93.9429Z" stroke="white" stroke-width="10" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_203_20285" x1="96" y1="0" x2="96" y2="192" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0.35"/>
+</linearGradient>
+</defs>
+</svg>
+        </div>
+        <h1 class="text-[30px] font-bold">
+            Laravel Event Sourcing
+        </h1>
+    </div>
+
+    <div class="text-oss-royal-blue">
+        <h2 class="text-[24px] leading-[1.2] font-bold mb-3"></h2>
+        <div class="mb-5">
+            Event sourcing for Artisans 📽
+        </div>
+    </div>
+
+    <div class="md:flex justify-between">
+        <div class="flex space-x-2 mb-4 md:mb-0">
+            <div>
+                <a href="https://github.com/spatie/laravel-event-sourcing" target="_blank" class="bg-[--accent-color] text-[--button-text-color] rounded drop-shadow-sm px-4 py-2 inline-flex items-center space-x-2 text-[16px] hover:brightness-90">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path  fill="#fff"  fill-rule="evenodd" clip-rule="evenodd" d="M10.0003 1.67095C5.40443 1.67095 1.68359 5.39595 1.68359 9.99179C1.68359 13.571 3.97526 16.7501 7.36693 17.8793C7.78359 17.9585 7.96276 17.7001 7.96276 17.4793V16.0668C5.65026 16.5668 5.16276 14.9501 5.16276 14.9501C5.0003 14.4411 4.65818 14.0087 4.20026 13.7335C3.44609 13.221 4.25859 13.2293 4.25859 13.2293C4.79193 13.3043 5.26276 13.621 5.52943 14.0918C5.76003 14.5043 6.14496 14.8085 6.59966 14.9374C7.05435 15.0663 7.54162 15.0094 7.95443 14.7793C7.98776 14.3585 8.17526 13.9626 8.47443 13.6668C6.63276 13.4543 4.69109 12.7418 4.69109 9.55429C4.67703 8.72737 4.98341 7.92707 5.54609 7.32095C5.29161 6.60393 5.32143 5.81667 5.62943 5.12095C5.62943 5.12095 6.32526 4.89595 7.91693 5.97095C9.27824 5.60013 10.714 5.60013 12.0753 5.97095C13.6628 4.89595 14.3586 5.12095 14.3586 5.12095C14.6669 5.81679 14.6953 6.60429 14.4419 7.32095C15.0047 7.92697 15.3108 8.72741 15.2961 9.55429C15.2961 12.7501 13.3544 13.4501 11.4994 13.6585C11.8994 14.0668 12.1078 14.6251 12.0628 15.196V17.4793C12.0628 17.7543 12.2128 17.9626 12.6586 17.8793C17.0169 16.4251 19.3703 11.7126 17.9169 7.35429C17.3624 5.69415 16.2983 4.25121 14.8762 3.23083C13.4541 2.21044 11.7464 1.66459 9.99609 1.67095H10.0003Z"/>
+                    </svg>
+
+                    <span>Repository</span>
+                </a>
+            </div>
+
+                    </div>
+        <div class="flex items-center space-x-4 text-xs">
+            <div class="flex items-center space-x-2">
+                <svg width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14.875 10.125L10.5 14.5L6.125 10.125V9.25H8.75V4.875H12.25V9.25H14.875V10.125ZM6.125 15.375H14.875H15.75V17.125H14.875H6.125H5.25V15.375H6.125Z" fill="#172A3D"/>
+                </svg>
+
+                <span>3,406,386</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg width="21" height="22" viewBox="0 0 21 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.5016 4L12.8668 8.48438L17.8625 9.34844L14.327 12.9824L15.0488 18L10.5016 15.7633L5.95156 18L6.67344 12.9824L3.14062 9.34844L8.13359 8.48438L10.5016 4Z" fill="#172A3D"/>
+                </svg>
+
+                <span>886</span>
+            </div>
+        </div>
+    </div>
+</div>
+                                        <h2 class="text-[36px] font-bold mb-5">Introduction</h2>
+                
+                                    <div class="lg:hidden mb-8">
+                        <h3 class="text-base font-bold mb-2">
+                            On this page
+                        </h3>
+                        <ol class="grid gap-1">
+                                                            <li class="text-sm">
+                                    <a href="#content-a-premium-course-on-event-sourcing">
+                                        A premium course on event sourcing
+                                    </a>
+                                </li>
+                                                            <li class="text-sm">
+                                    <a href="#content-we-have-badges">
+                                        We have badges!
+                                    </a>
+                                </li>
+                                                    </ol>
+                    </div>
+                
+                <div id="site-search-docs-content">
+                    <div class="markup markup-titles markup-lists markup-tables markup-embeds markup-code links-blue links-underline content-markup text-base md:text-lg">
+                        <p>This package aims to be the entry point to get started with event sourcing in Laravel. It can help you setting up aggregates, projectors and reactors.</p>
+<p>If you've never worked with event sourcing, or are uncertain about what projectors, reactors and aggregates are, head over to <a wire:navigate href="/docs/laravel-event-sourcing/v7/getting-familiar-with-event-sourcing/introduction">the getting familiar with event sourcing section</a>.</p>
+<p>Event sourcing might be a good choice for your project if:</p>
+<ul>
+<li>your app needs to make decisions based on the past</li>
+<li>your app has auditing requirements: the reason why your app is in a certain state is equally important as the state itself</li>
+<li>you foresee that there will be a reporting need in the future, but you don't know yet which data you need to collect for those reports</li>
+</ul>
+<p>Some concepts in the package, for example the testing methods of aggregates, were inspired by <a href="https://twitter.com/frankdejonge/">Frank De Jonge</a>'s <a href="https://eventsauce.io/">EventSauce</a> package.</p>
+<h2 id="a-idcontent-a-premium-course-on-event-sourcing-1-hrefcontent-a-premium-course-on-event-sourcing-1-classanchor-link-aria-hiddentrue-titlepermalinkaa-idcontent-a-premium-course-on-event-sourcing-hrefcontent-a-premium-course-on-event-sourcing-classanchor-link-aria-hiddentrue-titlepermalinkaa-premium-course-on-event-sourcing"><a id="content-a-premium-course-on-event-sourcing-1" href="#content-a-premium-course-on-event-sourcing-1" class="anchor-link" aria-hidden="true" title="Permalink">#</a><a id="content-a-premium-course-on-event-sourcing" href="#content-a-premium-course-on-event-sourcing" class="anchor-link" aria-hidden="true" title="Permalink">#</a>A premium course on event sourcing</h2>
+<p><a href="https://event-sourcing-laravel.com">Our premium course on event sourcing</a> will greatly help you understand event sourcing concepts.</p>
+<p>In this course, we'll walk you through all the basics, and work our way towards the most complex topics. Though the knowledge presented is framework agnostic, the examples embrace Laravel.</p>
+<p>The course includes:</p>
+<ul>
+<li>a beautifully designed e-book of &gt; 200 pages</li>
+<li>2 hours of video content</li>
+<li>an event sourced cart Laravel demo app</li>
+</ul>
+<h2 id="a-idcontent-we-have-badges-1-hrefcontent-we-have-badges-1-classanchor-link-aria-hiddentrue-titlepermalinkaa-idcontent-we-have-badges-hrefcontent-we-have-badges-classanchor-link-aria-hiddentrue-titlepermalinkawe-have-badges"><a id="content-we-have-badges-1" href="#content-we-have-badges-1" class="anchor-link" aria-hidden="true" title="Permalink">#</a><a id="content-we-have-badges" href="#content-we-have-badges" class="anchor-link" aria-hidden="true" title="Permalink">#</a>We have badges!</h2>
+<section class="article_badges">
+    <a href="https://github.com/spatie/laravel-event-sourcing/releases"><img src="https://img.shields.io/github/release/spatie/laravel-event-sourcing.svg?style=flat-square" alt="Latest Version"></a>
+    <a href="https://github.com/spatie/laravel-event-sourcing/blob/main/LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square" alt="Software License"></a>
+    <a href="https://packagist.org/packages/spatie/laravel-event-sourcing"><img src="https://img.shields.io/packagist/dt/spatie/laravel-event-sourcing.svg?style=flat-square" alt="Total Downloads"></a>
+</section>
+
+                    </div>
+                </div>
+
+                <div
+                    class="border border-gray/25 p-6 rounded-md mt-10 flex justify-between items-center bg-link-card-light md:text-lg">
+                    <div class="w-full">
+                                                    <a class="flex items-center gap-x-2 text-blue hover:underline" href="https://spatie.be/docs/laravel-event-sourcing/v7/about-us"
+                               wire:navigate.hover>
+                                <svg class="w-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 7 12">
+                                    <path fill="#197593"
+                                          d="m.313 5.623.53.53 4.5 4.5.531.532 1.062-1.062-.53-.53-3.97-3.97 3.968-3.97.532-.53L5.874.062l-.53.532-4.5 4.5-.531.53Z"/>
+                                </svg>
+                                <span class="leading-none mb-px">About us</span>
+                            </a>
+                                            </div>
+                    <div class="h-5 w-px bg-oss-gray-dark"></div>
+                    <div class="w-full flex justify-end">
+                                                    <a class="flex items-center gap-x-2 text-blue hover:underline" href="https://spatie.be/docs/laravel-event-sourcing/v7/support-us"
+                               wire:navigate.hover>
+                                <span class="leading-none mb-px">Support us</span>
+                                <svg class="w-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 7 12">
+                                    <path fill="#197593"
+                                          d="m6.686 5.623-.53.53-4.5 4.5-.532.532-1.062-1.062.53-.53 3.97-3.97-3.967-3.97-.532-.53L1.123.062l.53.53 4.5 4.5.532.531Z"/>
+                                </svg>
+                            </a>
+                                            </div>
+                </div>
+                <a href="https://github.com/spatie/laravel-event-sourcing/blob/main/docs/introduction.md" target="_blank"
+                   class="ml-auto inline-flex items-center gap-3 mt-10 hover:underline lg:hidden">
+                    <span class="w-5 h-5">
+                        <svg class="w-full h-full fill-current" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 32 32">
+<path  d="M16,0C7.16,0,0,7.34,0,16.41c0,7.25,4.58,13.4,10.94,15.57c0.8,0.15,1.09-0.36,1.09-0.79
+	c0-0.39-0.01-1.42-0.02-2.79c-4.45,0.99-5.39-2.2-5.39-2.2c-0.73-1.9-1.78-2.4-1.78-2.4c-1.45-1.02,0.11-1,0.11-1
+	c1.61,0.12,2.45,1.69,2.45,1.69c1.43,2.51,3.74,1.78,4.66,1.36c0.15-1.06,0.56-1.78,1.02-2.19c-3.55-0.41-7.29-1.82-7.29-8.11
+	c0-1.79,0.62-3.26,1.65-4.4C7.27,10.73,6.72,9.06,7.6,6.8c0,0,1.34-0.44,4.4,1.68c1.28-0.36,2.64-0.55,4.01-0.55
+	c1.36,0.01,2.73,0.19,4.01,0.55c3.05-2.12,4.4-1.68,4.4-1.68c0.87,2.26,0.32,3.93,0.16,4.34c1.03,1.15,1.64,2.61,1.64,4.4
+	c0,6.3-3.74,7.69-7.31,8.1c0.57,0.51,1.09,1.51,1.09,3.04c0,2.19-0.02,3.96-0.02,4.5c0,0.44,0.29,0.95,1.1,0.79
+	C27.42,29.8,32,23.65,32,16.41C32,7.34,24.84,0,16,0z"/>
+</svg>
+
+                    </span>
+                    <span>
+                        Help us improve this page
+                    </span>
+                </a>
+            </article>
+            <aside class="hidden lg:block w-full pb-16 col-span-2 print-hidden">
+                <div class="sticky top-[1rem]">
+                                            <h3 class="text-base font-bold mb-2">
+                            On this page
+                        </h3>
+                        <ul class="grid gap-2 mb-10 max-h-screen overflow-y-auto">
+                                                            <li class="text-sm">
+                                    <a href="#content-a-premium-course-on-event-sourcing" class="docs-submenu-item">
+                                        A premium course on event sourcing
+                                    </a>
+                                </li>
+                                                            <li class="text-sm">
+                                    <a href="#content-we-have-badges" class="docs-submenu-item">
+                                        We have badges!
+                                    </a>
+                                </li>
+                                                    </ul>
+                                        <!--
+    bg-orange text-orange
+    bg-orange-dark text-orange-dark
+    bg-purple text-purple
+    bg-pink text-pink
+    bg-blue text-blue
+-->
+<aside class="flex w-full ">
+    <div class="w-full bg-pink text-white flex flex-col justify-center p-5 rounded-lg gap-3 text-sm">
+        <div class="text-lg icon bg-white text-pink rounded-full w-8 flex items-center justify-center h-8">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M606.72 147.91l-258-79.57c-18.81-5.78-38.62-5.78-57.44 0l-258 79.57C13.38 154.05 0 171.77 0 192.02s13.38 37.97 33.28 44.11l22.64 6.98c-2.46 5.19-4.4 10.62-5.7 16.31C39.53 264.6 32 275.33 32 288.01c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.95 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.66c8.17-5.8 13.86-14.87 13.86-25.65 0-10.6-5.49-19.54-13.43-25.36 1.13-3.55 2.96-6.67 4.85-9.83l54.87 16.92L128 384c0 35.34 85.96 64 192 64s192-28.65 192-64l-14.28-114.26 109-33.62c19.91-6.14 33.28-23.86 33.28-44.11s-13.38-37.96-33.28-44.1zM462.44 374.47c-59.7 34.2-225.9 33.78-284.87 0l11.3-90.36 102.42 31.59c11.15 3.43 32.24 7.77 57.44 0l102.42-31.59 11.29 90.36zM334.59 269.82c-9.44 2.91-19.75 2.91-29.19 0L154.62 223.3l168.31-31.56c8.69-1.62 14.41-9.98 12.78-18.67-1.62-8.72-10.09-14.36-18.66-12.76l-203.78 38.2c-6.64 1.24-12.8 3.54-18.71 6.27L53.19 192l252.22-77.79c9.44-2.91 19.75-2.91 29.19 0l252.22 77.82-252.23 77.79z"/></svg>
+        </div>
+        <div class="">
+            <div class="font-bold">
+                Event Sourcing in Laravel
+            </div>
+            <p>Check out our course Event Sourcing</p>
+        </div>
+        <a href="https://laravel-beyond-crud.com?ref=spatie-docs" class="mt-2">
+            <button type="button" class="px-4 py-2.5 rounded text-oss-royal-blue bg-white cursor-pointer">
+                Learn&nbsp;more
+            </button>
+        </a>
+    </div>
+</aside>
+
+                    <a href="https://github.com/spatie/laravel-event-sourcing/blob/main/docs/introduction.md" target="_blank"
+                       class="text-sm inline-flex items-center gap-3 mt-10 hover:underline">
+                        <span class="w-5 h-5">
+                            <svg class="w-full h-full fill-current" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 32 32">
+<path  d="M16,0C7.16,0,0,7.34,0,16.41c0,7.25,4.58,13.4,10.94,15.57c0.8,0.15,1.09-0.36,1.09-0.79
+	c0-0.39-0.01-1.42-0.02-2.79c-4.45,0.99-5.39-2.2-5.39-2.2c-0.73-1.9-1.78-2.4-1.78-2.4c-1.45-1.02,0.11-1,0.11-1
+	c1.61,0.12,2.45,1.69,2.45,1.69c1.43,2.51,3.74,1.78,4.66,1.36c0.15-1.06,0.56-1.78,1.02-2.19c-3.55-0.41-7.29-1.82-7.29-8.11
+	c0-1.79,0.62-3.26,1.65-4.4C7.27,10.73,6.72,9.06,7.6,6.8c0,0,1.34-0.44,4.4,1.68c1.28-0.36,2.64-0.55,4.01-0.55
+	c1.36,0.01,2.73,0.19,4.01,0.55c3.05-2.12,4.4-1.68,4.4-1.68c0.87,2.26,0.32,3.93,0.16,4.34c1.03,1.15,1.64,2.61,1.64,4.4
+	c0,6.3-3.74,7.69-7.31,8.1c0.57,0.51,1.09,1.51,1.09,3.04c0,2.19-0.02,3.96-0.02,4.5c0,0.44,0.29,0.95,1.1,0.79
+	C27.42,29.8,32,23.65,32,16.41C32,7.34,24.84,0,16,0z"/>
+</svg>
+
+                        </span>
+                        <span>
+                            Help us improve this page
+                        </span>
+                    </a>
+                </div>
+            </aside>
+        </section>
+    </div>
+
+    <div wire:snapshot="{&quot;data&quot;:{&quot;dependencyQueryResults&quot;:[[],{&quot;s&quot;:&quot;arr&quot;}]},&quot;memo&quot;:{&quot;id&quot;:&quot;kPh8zKlYE4rQRKwJM4WS&quot;,&quot;name&quot;:&quot;spotlight&quot;,&quot;path&quot;:&quot;docs\/laravel-event-sourcing\/v7\/introduction&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;release&quot;:&quot;a-a-a&quot;,&quot;children&quot;:[],&quot;scripts&quot;:[],&quot;assets&quot;:[],&quot;errors&quot;:[],&quot;locale&quot;:&quot;en&quot;},&quot;checksum&quot;:&quot;a49fd6a3425bb84357e691099619ffd3b8eb79322b7a0fe24eb8cbcdc2ff33c3&quot;}" wire:effects="{&quot;partials&quot;:[]}" wire:id="kPh8zKlYE4rQRKwJM4WS">
+    <!--[if BLOCK]><![endif]-->        <script>(()=>{"use strict";var e,t={48:()=>{function e(e){return Array.isArray?Array.isArray(e):"[object Array]"===o(e)}function t(e){return"string"==typeof e}function n(e){return"number"==typeof e}function s(e){return!0===e||!1===e||function(e){return i(e)&&null!==e}(e)&&"[object Boolean]"==o(e)}function i(e){return"object"==typeof e}function r(e){return null!=e}function c(e){return!e.trim().length}function o(e){return null==e?void 0===e?"[object Undefined]":"[object Null]":Object.prototype.toString.call(e)}const h=Object.prototype.hasOwnProperty;class a{constructor(e){this._keys=[],this._keyMap={};let t=0;e.forEach((e=>{let n=l(e);t+=n.weight,this._keys.push(n),this._keyMap[n.id]=n,t+=n.weight})),this._keys.forEach((e=>{e.weight/=t}))}get(e){return this._keyMap[e]}keys(){return this._keys}toJSON(){return JSON.stringify(this._keys)}}function l(n){let s=null,i=null,r=null,c=1;if(t(n)||e(n))r=n,s=u(n),i=d(n);else{if(!h.call(n,"name"))throw new Error((e=>`Missing ${e} property in key`)("name"));const e=n.name;if(r=e,h.call(n,"weight")&&(c=n.weight,c<=0))throw new Error((e=>`Property 'weight' in key '${e}' must be a positive integer`)(e));s=u(e),i=d(e)}return{path:s,id:i,weight:c,src:r}}function u(t){return e(t)?t:t.split(".")}function d(t){return e(t)?t.join("."):t}var p={isCaseSensitive:!1,includeScore:!1,keys:[],shouldSort:!0,sortFn:(e,t)=>e.score===t.score?e.idx<t.idx?-1:1:e.score<t.score?-1:1,includeMatches:!1,findAllMatches:!1,minMatchCharLength:1,location:0,threshold:.6,distance:100,...{useExtendedSearch:!1,getFn:function(i,c){let o=[],h=!1;const a=(i,c,l)=>{if(r(i))if(c[l]){const u=i[c[l]];if(!r(u))return;if(l===c.length-1&&(t(u)||n(u)||s(u)))o.push(function(e){return null==e?"":function(e){if("string"==typeof e)return e;let t=e+"";return"0"==t&&1/e==-1/0?"-0":t}(e)}(u));else if(e(u)){h=!0;for(let e=0,t=u.length;e<t;e+=1)a(u[e],c,l+1)}else c.length&&a(u,c,l+1)}else o.push(i)};return a(i,t(c)?c.split("."):c,0),h?o:o[0]},ignoreLocation:!1,ignoreFieldNorm:!1}};const g=/[^ ]+/g;class f{constructor({getFn:e=p.getFn}={}){this.norm=function(e=3){const t=new Map,n=Math.pow(10,e);return{get(e){const s=e.match(g).length;if(t.has(s))return t.get(s);const i=1/Math.sqrt(s),r=parseFloat(Math.round(i*n)/n);return t.set(s,r),r},clear(){t.clear()}}}(3),this.getFn=e,this.isCreated=!1,this.setIndexRecords()}setSources(e=[]){this.docs=e}setIndexRecords(e=[]){this.records=e}setKeys(e=[]){this.keys=e,this._keysMap={},e.forEach(((e,t)=>{this._keysMap[e.id]=t}))}create(){!this.isCreated&&this.docs.length&&(this.isCreated=!0,t(this.docs[0])?this.docs.forEach(((e,t)=>{this._addString(e,t)})):this.docs.forEach(((e,t)=>{this._addObject(e,t)})),this.norm.clear())}add(e){const n=this.size();t(e)?this._addString(e,n):this._addObject(e,n)}removeAt(e){this.records.splice(e,1);for(let t=e,n=this.size();t<n;t+=1)this.records[t].i-=1}getValueForItemAtKeyId(e,t){return e[this._keysMap[t]]}size(){return this.records.length}_addString(e,t){if(!r(e)||c(e))return;let n={v:e,i:t,n:this.norm.get(e)};this.records.push(n)}_addObject(n,s){let i={i:s,$:{}};this.keys.forEach(((s,o)=>{let h=this.getFn(n,s.path);if(r(h))if(e(h)){let n=[];const s=[{nestedArrIndex:-1,value:h}];for(;s.length;){const{nestedArrIndex:i,value:o}=s.pop();if(r(o))if(t(o)&&!c(o)){let e={v:o,i,n:this.norm.get(o)};n.push(e)}else e(o)&&o.forEach(((e,t)=>{s.push({nestedArrIndex:t,value:e})}))}i.$[o]=n}else if(!c(h)){let e={v:h,n:this.norm.get(h)};i.$[o]=e}})),this.records.push(i)}toJSON(){return{keys:this.keys,records:this.records}}}function m(e,t,{getFn:n=p.getFn}={}){const s=new f({getFn:n});return s.setKeys(e.map(l)),s.setSources(t),s.create(),s}function y(e,{errors:t=0,currentLocation:n=0,expectedLocation:s=0,distance:i=p.distance,ignoreLocation:r=p.ignoreLocation}={}){const c=t/e.length;if(r)return c;const o=Math.abs(s-n);return i?c+o/i:o?1:c}const M=32;function x(e,t,n,{location:s=p.location,distance:i=p.distance,threshold:r=p.threshold,findAllMatches:c=p.findAllMatches,minMatchCharLength:o=p.minMatchCharLength,includeMatches:h=p.includeMatches,ignoreLocation:a=p.ignoreLocation}={}){if(t.length>M)throw new Error(`Pattern length exceeds max of ${M}.`);const l=t.length,u=e.length,d=Math.max(0,Math.min(s,u));let g=r,f=d;const m=o>1||h,x=m?Array(u):[];let v;for(;(v=e.indexOf(t,f))>-1;){let e=y(t,{currentLocation:v,expectedLocation:d,distance:i,ignoreLocation:a});if(g=Math.min(e,g),f=v+l,m){let e=0;for(;e<l;)x[v+e]=1,e+=1}}f=-1;let k=[],w=1,L=l+u;const S=1<<l-1;for(let s=0;s<l;s+=1){let r=0,o=L;for(;r<o;){y(t,{errors:s,currentLocation:d+o,expectedLocation:d,distance:i,ignoreLocation:a})<=g?r=o:L=o,o=Math.floor((L-r)/2+r)}L=o;let h=Math.max(1,d-o+1),p=c?u:Math.min(d+o,u)+l,M=Array(p+2);M[p+1]=(1<<s)-1;for(let r=p;r>=h;r-=1){let c=r-1,o=n[e.charAt(c)];if(m&&(x[c]=+!!o),M[r]=(M[r+1]<<1|1)&o,s&&(M[r]|=(k[r+1]|k[r])<<1|1|k[r+1]),M[r]&S&&(w=y(t,{errors:s,currentLocation:c,expectedLocation:d,distance:i,ignoreLocation:a}),w<=g)){if(g=w,f=c,f<=d)break;h=Math.max(1,2*d-f)}}if(y(t,{errors:s+1,currentLocation:d,expectedLocation:d,distance:i,ignoreLocation:a})>g)break;k=M}const I={isMatch:f>=0,score:Math.max(.001,w)};if(m){const e=function(e=[],t=p.minMatchCharLength){let n=[],s=-1,i=-1,r=0;for(let c=e.length;r<c;r+=1){let c=e[r];c&&-1===s?s=r:c||-1===s||(i=r-1,i-s+1>=t&&n.push([s,i]),s=-1)}return e[r-1]&&r-s>=t&&n.push([s,r-1]),n}(x,o);e.length?h&&(I.indices=e):I.isMatch=!1}return I}function v(e){let t={};for(let n=0,s=e.length;n<s;n+=1){const i=e.charAt(n);t[i]=(t[i]||0)|1<<s-n-1}return t}class k{constructor(e,{location:t=p.location,threshold:n=p.threshold,distance:s=p.distance,includeMatches:i=p.includeMatches,findAllMatches:r=p.findAllMatches,minMatchCharLength:c=p.minMatchCharLength,isCaseSensitive:o=p.isCaseSensitive,ignoreLocation:h=p.ignoreLocation}={}){if(this.options={location:t,threshold:n,distance:s,includeMatches:i,findAllMatches:r,minMatchCharLength:c,isCaseSensitive:o,ignoreLocation:h},this.pattern=o?e:e.toLowerCase(),this.chunks=[],!this.pattern.length)return;const a=(e,t)=>{this.chunks.push({pattern:e,alphabet:v(e),startIndex:t})},l=this.pattern.length;if(l>M){let e=0;const t=l%M,n=l-t;for(;e<n;)a(this.pattern.substr(e,M),e),e+=M;if(t){const e=l-M;a(this.pattern.substr(e),e)}}else a(this.pattern,0)}searchIn(e){const{isCaseSensitive:t,includeMatches:n}=this.options;if(t||(e=e.toLowerCase()),this.pattern===e){let t={isMatch:!0,score:0};return n&&(t.indices=[[0,e.length-1]]),t}const{location:s,distance:i,threshold:r,findAllMatches:c,minMatchCharLength:o,ignoreLocation:h}=this.options;let a=[],l=0,u=!1;this.chunks.forEach((({pattern:t,alphabet:d,startIndex:p})=>{const{isMatch:g,score:f,indices:m}=x(e,t,d,{location:s+p,distance:i,threshold:r,findAllMatches:c,minMatchCharLength:o,includeMatches:n,ignoreLocation:h});g&&(u=!0),l+=f,g&&m&&(a=[...a,...m])}));let d={isMatch:u,score:u?l/this.chunks.length:1};return u&&n&&(d.indices=a),d}}class w{constructor(e){this.pattern=e}static isMultiMatch(e){return L(e,this.multiRegex)}static isSingleMatch(e){return L(e,this.singleRegex)}search(){}}function L(e,t){const n=e.match(t);return n?n[1]:null}class S extends w{constructor(e,{location:t=p.location,threshold:n=p.threshold,distance:s=p.distance,includeMatches:i=p.includeMatches,findAllMatches:r=p.findAllMatches,minMatchCharLength:c=p.minMatchCharLength,isCaseSensitive:o=p.isCaseSensitive,ignoreLocation:h=p.ignoreLocation}={}){super(e),this._bitapSearch=new k(e,{location:t,threshold:n,distance:s,includeMatches:i,findAllMatches:r,minMatchCharLength:c,isCaseSensitive:o,ignoreLocation:h})}static get type(){return"fuzzy"}static get multiRegex(){return/^"(.*)"$/}static get singleRegex(){return/^(.*)$/}search(e){return this._bitapSearch.searchIn(e)}}class I extends w{constructor(e){super(e)}static get type(){return"include"}static get multiRegex(){return/^'"(.*)"$/}static get singleRegex(){return/^'(.*)$/}search(e){let t,n=0;const s=[],i=this.pattern.length;for(;(t=e.indexOf(this.pattern,n))>-1;)n=t+i,s.push([t,n-1]);const r=!!s.length;return{isMatch:r,score:r?0:1,indices:s}}}const C=[class extends w{constructor(e){super(e)}static get type(){return"exact"}static get multiRegex(){return/^="(.*)"$/}static get singleRegex(){return/^=(.*)$/}search(e){const t=e===this.pattern;return{isMatch:t,score:t?0:1,indices:[0,this.pattern.length-1]}}},I,class extends w{constructor(e){super(e)}static get type(){return"prefix-exact"}static get multiRegex(){return/^\^"(.*)"$/}static get singleRegex(){return/^\^(.*)$/}search(e){const t=e.startsWith(this.pattern);return{isMatch:t,score:t?0:1,indices:[0,this.pattern.length-1]}}},class extends w{constructor(e){super(e)}static get type(){return"inverse-prefix-exact"}static get multiRegex(){return/^!\^"(.*)"$/}static get singleRegex(){return/^!\^(.*)$/}search(e){const t=!e.startsWith(this.pattern);return{isMatch:t,score:t?0:1,indices:[0,e.length-1]}}},class extends w{constructor(e){super(e)}static get type(){return"inverse-suffix-exact"}static get multiRegex(){return/^!"(.*)"\$$/}static get singleRegex(){return/^!(.*)\$$/}search(e){const t=!e.endsWith(this.pattern);return{isMatch:t,score:t?0:1,indices:[0,e.length-1]}}},class extends w{constructor(e){super(e)}static get type(){return"suffix-exact"}static get multiRegex(){return/^"(.*)"\$$/}static get singleRegex(){return/^(.*)\$$/}search(e){const t=e.endsWith(this.pattern);return{isMatch:t,score:t?0:1,indices:[e.length-this.pattern.length,e.length-1]}}},class extends w{constructor(e){super(e)}static get type(){return"inverse-exact"}static get multiRegex(){return/^!"(.*)"$/}static get singleRegex(){return/^!(.*)$/}search(e){const t=-1===e.indexOf(this.pattern);return{isMatch:t,score:t?0:1,indices:[0,e.length-1]}}},S],_=C.length,$=/ +(?=([^\"]*\"[^\"]*\")*[^\"]*$)/;const b=new Set([S.type,I.type]);class O{constructor(e,{isCaseSensitive:t=p.isCaseSensitive,includeMatches:n=p.includeMatches,minMatchCharLength:s=p.minMatchCharLength,ignoreLocation:i=p.ignoreLocation,findAllMatches:r=p.findAllMatches,location:c=p.location,threshold:o=p.threshold,distance:h=p.distance}={}){this.query=null,this.options={isCaseSensitive:t,includeMatches:n,minMatchCharLength:s,findAllMatches:r,ignoreLocation:i,location:c,threshold:o,distance:h},this.pattern=t?e:e.toLowerCase(),this.query=function(e,t={}){return e.split("|").map((e=>{let n=e.trim().split($).filter((e=>e&&!!e.trim())),s=[];for(let e=0,i=n.length;e<i;e+=1){const i=n[e];let r=!1,c=-1;for(;!r&&++c<_;){const e=C[c];let n=e.isMultiMatch(i);n&&(s.push(new e(n,t)),r=!0)}if(!r)for(c=-1;++c<_;){const e=C[c];let n=e.isSingleMatch(i);if(n){s.push(new e(n,t));break}}}return s}))}(this.pattern,this.options)}static condition(e,t){return t.useExtendedSearch}searchIn(e){const t=this.query;if(!t)return{isMatch:!1,score:1};const{includeMatches:n,isCaseSensitive:s}=this.options;e=s?e:e.toLowerCase();let i=0,r=[],c=0;for(let s=0,o=t.length;s<o;s+=1){const o=t[s];r.length=0,i=0;for(let t=0,s=o.length;t<s;t+=1){const s=o[t],{isMatch:h,indices:a,score:l}=s.search(e);if(!h){c=0,i=0,r.length=0;break}if(i+=1,c+=l,n){const e=s.constructor.type;b.has(e)?r=[...r,...a]:r.push(a)}}if(i){let e={isMatch:!0,score:c/i};return n&&(e.indices=r),e}}return{isMatch:!1,score:1}}}const E=[];function A(e,t){for(let n=0,s=E.length;n<s;n+=1){let s=E[n];if(s.condition(e,t))return new s(e,t)}return new k(e,t)}const R="$and",D="$or",F="$path",j="$val",N=e=>!(!e[R]&&!e[D]),q=e=>({[R]:Object.keys(e).map((t=>({[t]:e[t]})))});function P(n,s,{auto:r=!0}={}){const c=n=>{let o=Object.keys(n);const h=(e=>!!e[F])(n);if(!h&&o.length>1&&!N(n))return c(q(n));if((t=>!e(t)&&i(t)&&!N(t))(n)){const e=h?n[F]:o[0],i=h?n[j]:n[e];if(!t(i))throw new Error((e=>`Invalid value for key ${e}`)(e));const c={keyId:d(e),pattern:i};return r&&(c.searcher=A(i,s)),c}let a={children:[],operator:o[0]};return o.forEach((t=>{const s=n[t];e(s)&&s.forEach((e=>{a.children.push(c(e))}))})),a};return N(n)||(n=q(n)),c(n)}function W(e,t){const n=e.matches;t.matches=[],r(n)&&n.forEach((e=>{if(!r(e.indices)||!e.indices.length)return;const{indices:n,value:s}=e;let i={indices:n,value:s};e.key&&(i.key=e.key.src),e.idx>-1&&(i.refIndex=e.idx),t.matches.push(i)}))}function z(e,t){t.score=e.score}class J{constructor(e,t={},n){this.options={...p,...t},this.options.useExtendedSearch,this._keyStore=new a(this.options.keys),this.setCollection(e,n)}setCollection(e,t){if(this._docs=e,t&&!(t instanceof f))throw new Error("Incorrect 'index' type");this._myIndex=t||m(this.options.keys,this._docs,{getFn:this.options.getFn})}add(e){r(e)&&(this._docs.push(e),this._myIndex.add(e))}remove(e=(()=>!1)){const t=[];for(let n=0,s=this._docs.length;n<s;n+=1){const i=this._docs[n];e(i,n)&&(this.removeAt(n),n-=1,s-=1,t.push(i))}return t}removeAt(e){this._docs.splice(e,1),this._myIndex.removeAt(e)}getIndex(){return this._myIndex}search(e,{limit:s=-1}={}){const{includeMatches:i,includeScore:r,shouldSort:c,sortFn:o,ignoreFieldNorm:h}=this.options;let a=t(e)?t(this._docs[0])?this._searchStringList(e):this._searchObjectList(e):this._searchLogical(e);return function(e,{ignoreFieldNorm:t=p.ignoreFieldNorm}){e.forEach((e=>{let n=1;e.matches.forEach((({key:e,norm:s,score:i})=>{const r=e?e.weight:null;n*=Math.pow(0===i&&r?Number.EPSILON:i,(r||1)*(t?1:s))})),e.score=n}))}(a,{ignoreFieldNorm:h}),c&&a.sort(o),n(s)&&s>-1&&(a=a.slice(0,s)),function(e,t,{includeMatches:n=p.includeMatches,includeScore:s=p.includeScore}={}){const i=[];return n&&i.push(W),s&&i.push(z),e.map((e=>{const{idx:n}=e,s={item:t[n],refIndex:n};return i.length&&i.forEach((t=>{t(e,s)})),s}))}(a,this._docs,{includeMatches:i,includeScore:r})}_searchStringList(e){const t=A(e,this.options),{records:n}=this._myIndex,s=[];return n.forEach((({v:e,i:n,n:i})=>{if(!r(e))return;const{isMatch:c,score:o,indices:h}=t.searchIn(e);c&&s.push({item:e,idx:n,matches:[{score:o,value:e,norm:i,indices:h}]})})),s}_searchLogical(e){const t=P(e,this.options),n=(e,t,s)=>{if(!e.children){const{keyId:n,searcher:i}=e,r=this._findMatches({key:this._keyStore.get(n),value:this._myIndex.getValueForItemAtKeyId(t,n),searcher:i});return r&&r.length?[{idx:s,item:t,matches:r}]:[]}switch(e.operator){case R:{const i=[];for(let r=0,c=e.children.length;r<c;r+=1){const c=e.children[r],o=n(c,t,s);if(!o.length)return[];i.push(...o)}return i}case D:{const i=[];for(let r=0,c=e.children.length;r<c;r+=1){const c=e.children[r],o=n(c,t,s);if(o.length){i.push(...o);break}}return i}}},s=this._myIndex.records,i={},c=[];return s.forEach((({$:e,i:s})=>{if(r(e)){let r=n(t,e,s);r.length&&(i[s]||(i[s]={idx:s,item:e,matches:[]},c.push(i[s])),r.forEach((({matches:e})=>{i[s].matches.push(...e)})))}})),c}_searchObjectList(e){const t=A(e,this.options),{keys:n,records:s}=this._myIndex,i=[];return s.forEach((({$:e,i:s})=>{if(!r(e))return;let c=[];n.forEach(((n,s)=>{c.push(...this._findMatches({key:n,value:e[s],searcher:t}))})),c.length&&i.push({idx:s,item:e,matches:c})})),i}_findMatches({key:t,value:n,searcher:s}){if(!r(n))return[];let i=[];if(e(n))n.forEach((({v:e,i:n,n:c})=>{if(!r(e))return;const{isMatch:o,score:h,indices:a}=s.searchIn(e);o&&i.push({score:h,key:t,value:e,idx:n,norm:c,indices:a})}));else{const{v:e,n:r}=n,{isMatch:c,score:o,indices:h}=s.searchIn(e);c&&i.push({score:o,key:t,value:e,norm:r,indices:h})}return i}}J.version="6.4.6",J.createIndex=m,J.parseIndex=function(e,{getFn:t=p.getFn}={}){const{keys:n,records:s}=e,i=new f({getFn:t});return i.setKeys(n),i.setIndexRecords(s),i},J.config=p,J.parseQuery=P,function(...e){E.push(...e)}(O);const K=J;window.LivewireUISpotlight=function(e){return{inputPlaceholder:e.placeholder,searchEngine:"commands",commands:e.commands,commandSearch:null,selectedCommand:null,dependencySearch:null,dependencyQueryResults:window.Livewire.find(e.componentId).entangle("dependencyQueryResults"),requiredDependencies:[],currentDependency:null,resolvedDependencies:{},showResultsWithoutInput:e.showResultsWithoutInput,init:function(){var t=this;this.commandSearch=new K(this.commands,{threshold:.3,keys:["name","description","synonyms"]}),this.dependencySearch=new K([],{threshold:.3,keys:["name","description","synonyms"]}),this.$watch("dependencyQueryResults",(function(e){t.dependencySearch.setCollection(e)})),this.$watch("input",(function(e){0===e.length&&(t.selected=0),null!==t.selectedCommand&&null!==t.currentDependency&&"search"===t.currentDependency.type&&t.$wire.searchDependency(t.selectedCommand.id,t.currentDependency.id,e,t.resolvedDependencies)})),this.$watch("isOpen",(function(n){!1===n&&setTimeout((function(){t.input="",t.inputPlaceholder=e.placeholder,t.searchEngine="commands",t.resolvedDependencies={},t.selectedCommand=null,t.currentDependency=null,t.selectedCommand=null,t.requiredDependencies=[]}),300)}))},isOpen:!1,toggleOpen:function(){var e=this;this.isOpen?this.isOpen=!1:(this.input="",this.isOpen=!0,setTimeout((function(){e.$refs.input.focus()}),100))},input:"",filteredItems:function(){return"commands"===this.searchEngine?!this.input&&this.showResultsWithoutInput?this.commandSearch.getIndex().docs.map((function(e,t){return[{item:e},t]})):this.commandSearch.search(this.input).map((function(e,t){return[e,t]})):"search"===this.searchEngine?!this.input&&this.showResultsWithoutInput?this.dependencySearch.getIndex().docs.map((function(e,t){return[{item:e},t]})):this.dependencySearch.search(this.input).map((function(e,t){return[e,t]})):[]},selectUp:function(){var e=this;this.selected=Math.max(0,this.selected-1),this.$nextTick((function(){e.$refs.results.children[e.selected+1].scrollIntoView({block:"nearest"})}))},selectDown:function(){var e=this;this.selected=Math.min(this.filteredItems().length-1,this.selected+1),this.$nextTick((function(){e.$refs.results.children[e.selected+1].scrollIntoView({block:"nearest"})}))},go:function(e){var t,n=this;(null===this.selectedCommand&&(this.selectedCommand=this.commands.find((function(t){return t.id===(e||n.filteredItems()[n.selected][0].item.id)})),this.requiredDependencies=JSON.parse(JSON.stringify(this.selectedCommand.dependencies))),null!==this.currentDependency)&&(t="search"===this.currentDependency.type?e||this.filteredItems()[this.selected][0].item.id:this.input,this.resolvedDependencies[this.currentDependency.id]=t);this.requiredDependencies.length>0?(this.input="",this.currentDependency=this.requiredDependencies.pop(),this.inputPlaceholder=this.currentDependency.placeholder,this.searchEngine="search"===this.currentDependency.type&&"search"):(this.isOpen=!1,this.$wire.execute(this.selectedCommand.id,this.resolvedDependencies))},selected:0}}},578:()=>{}},n={};function s(e){var i=n[e];if(void 0!==i)return i.exports;var r=n[e]={exports:{}};return t[e](r,r.exports,s),r.exports}s.m=t,e=[],s.O=(t,n,i,r)=>{if(!n){var c=1/0;for(a=0;a<e.length;a++){for(var[n,i,r]=e[a],o=!0,h=0;h<n.length;h++)(!1&r||c>=r)&&Object.keys(s.O).every((e=>s.O[e](n[h])))?n.splice(h--,1):(o=!1,r<c&&(c=r));o&&(e.splice(a--,1),t=i())}return t}r=r||0;for(var a=e.length;a>0&&e[a-1][2]>r;a--)e[a]=e[a-1];e[a]=[n,i,r]},s.o=(e,t)=>Object.prototype.hasOwnProperty.call(e,t),(()=>{var e={569:0,880:0};s.O.j=t=>0===e[t];var t=(t,n)=>{var i,r,[c,o,h]=n,a=0;for(i in o)s.o(o,i)&&(s.m[i]=o[i]);if(h)var l=h(s);for(t&&t(n);a<c.length;a++)r=c[a],s.o(e,r)&&e[r]&&e[r][0](),e[c[a]]=0;return s.O(l)},n=self.webpackChunk=self.webpackChunk||[];n.forEach(t.bind(null,0)),n.push=t.bind(null,n.push.bind(n))})(),s.O(void 0,[880],(()=>s(48)));var i=s.O(void 0,[880],(()=>s(578)));i=s.O(i)})();</script>
+    <!--[if ENDBLOCK]><![endif]-->    <!--[if BLOCK]><![endif]-->        <style>/*! tailwindcss v2.2.4 | MIT License | https://tailwindcss.com*/
+
+/*! modern-normalize v1.1.0 | MIT License | https://github.com/sindresorhus/modern-normalize */html{-webkit-text-size-adjust:100%;line-height:1.15;-moz-tab-size:4;-o-tab-size:4;tab-size:4}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;margin:0}hr{color:inherit;height:0}abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-color:inherit;text-indent:0}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],button{-webkit-appearance:button}legend{padding:0}progress{vertical-align:baseline}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}button{background-color:transparent;background-image:none}fieldset,ol,ul{margin:0;padding:0}ol,ul{list-style:none}html{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;line-height:1.5}body{font-family:inherit;line-height:inherit}*,:after,:before{border:0 solid;box-sizing:border-box}hr{border-top-width:1px}img{border-style:solid}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{color:#9ca3af;opacity:1}input:-ms-input-placeholder,textarea:-ms-input-placeholder{color:#9ca3af;opacity:1}input::placeholder,textarea::placeholder{color:#9ca3af;opacity:1}button{cursor:pointer}table{border-collapse:collapse}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}button,input,optgroup,select,textarea{color:inherit;line-height:inherit;padding:0}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{height:auto;max-width:100%}*,:after,:before{--tw-border-opacity:1;border-color:rgba(229,231,235,var(--tw-border-opacity))}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{bottom:0;left:0;right:0;top:0}.right-5{right:1.25rem}.z-50{z-index:50}.ml-1{margin-left:.25rem}.block{display:block}.flex{display:flex}.table{display:table}.h-5{height:1.25rem}.h-full{height:100%}.w-5{width:1.25rem}.w-full{width:100%}.max-w-lg{max-width:32rem}.transform{--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;transform:translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95}.scale-100{--tw-scale-x:1;--tw-scale-y:1}@-webkit-keyframes spin{to{transform:rotate(1turn)}}@keyframes spin{to{transform:rotate(1turn)}}@-webkit-keyframes ping{75%,to{opacity:0;transform:scale(2)}}@keyframes ping{75%,to{opacity:0;transform:scale(2)}}@-webkit-keyframes pulse{50%{opacity:.5}}@keyframes pulse{50%{opacity:.5}}@-webkit-keyframes bounce{0%,to{-webkit-animation-timing-function:cubic-bezier(.8,0,1,1);animation-timing-function:cubic-bezier(.8,0,1,1);transform:translateY(-25%)}50%{-webkit-animation-timing-function:cubic-bezier(0,0,.2,1);animation-timing-function:cubic-bezier(0,0,.2,1);transform:none}}@keyframes bounce{0%,to{-webkit-animation-timing-function:cubic-bezier(.8,0,1,1);animation-timing-function:cubic-bezier(.8,0,1,1);transform:translateY(-25%)}50%{-webkit-animation-timing-function:cubic-bezier(0,0,.2,1);animation-timing-function:cubic-bezier(0,0,.2,1);transform:none}}.animate-spin{-webkit-animation:spin 1s linear infinite;animation:spin 1s linear infinite}.appearance-none{-webkit-appearance:none;-moz-appearance:none;appearance:none}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.rounded-lg{border-radius:.5rem}.border{border-width:1px}.border-t{border-top-width:1px}.border-gray-800{--tw-border-opacity:1;border-color:rgba(31,41,55,var(--tw-border-opacity))}.focus\:border-transparent:focus{border-color:transparent}.bg-transparent{background-color:transparent}.bg-gray-700{--tw-bg-opacity:1;background-color:rgba(55,65,81,var(--tw-bg-opacity))}.bg-gray-900{--tw-bg-opacity:1;background-color:rgba(17,24,39,var(--tw-bg-opacity))}.hover\:bg-gray-800:hover{--tw-bg-opacity:1;background-color:rgba(31,41,55,var(--tw-bg-opacity))}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-3{padding-bottom:.75rem;padding-top:.75rem}.py-4{padding-bottom:1rem;padding-top:1rem}.pt-16{padding-top:4rem}.text-left{text-align:left}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-white{--tw-text-opacity:1;color:rgba(255,255,255,var(--tw-text-opacity))}.text-gray-300{--tw-text-opacity:1;color:rgba(209,213,219,var(--tw-text-opacity))}.text-gray-400{--tw-text-opacity:1;color:rgba(156,163,175,var(--tw-text-opacity))}.text-gray-500{--tw-text-opacity:1;color:rgba(107,114,128,var(--tw-text-opacity))}.placeholder-gray-500::-moz-placeholder{--tw-placeholder-opacity:1;color:rgba(107,114,128,var(--tw-placeholder-opacity))}.placeholder-gray-500:-ms-input-placeholder{--tw-placeholder-opacity:1;color:rgba(107,114,128,var(--tw-placeholder-opacity))}.placeholder-gray-500::placeholder{--tw-placeholder-opacity:1;color:rgba(107,114,128,var(--tw-placeholder-opacity))}.opacity-0{opacity:0}.opacity-25{opacity:.25}.opacity-50{opacity:.5}.opacity-75{opacity:.75}.opacity-100{opacity:1}*,:after,:before{--tw-shadow:0 0 #0000}.shadow-xl{--tw-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04)}.focus\:shadow-none:focus,.shadow-xl{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.focus\:shadow-none:focus{--tw-shadow:0 0 #0000}.focus\:outline-none:focus,.outline-none{outline:2px solid transparent;outline-offset:2px}*,:after,:before{--tw-ring-inset:var(--tw-empty,/*!*/ /*!*/);--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000}.transition-all{transition-duration:.15s;transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1)}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1)}.duration-150,.transition-opacity{transition-duration:.15s}.duration-200{transition-duration:.2s}.ease-in{transition-timing-function:cubic-bezier(.4,0,1,1)}.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1)}[x-cloak]{display:none!important}@media (min-width:640px){.sm\:pt-24{padding-top:6rem}}
+</style>
+    <!--[if ENDBLOCK]><![endif]-->
+    <div x-data="LivewireUISpotlight({
+        componentId: 'kPh8zKlYE4rQRKwJM4WS',
+        placeholder: 'Which package documentation do you want to see?',
+        commands: JSON.parse('[{\u0022id\u0022:\u0022browsershot\u0022,\u0022name\u0022:\u0022browsershot\u0022,\u0022description\u0022:\u0022General PHP\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022enum\u0022,\u0022name\u0022:\u0022enum\u0022,\u0022description\u0022:\u0022General PHP\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022image\u0022,\u0022name\u0022:\u0022image\u0022,\u0022description\u0022:\u0022General PHP\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-activitylog\u0022,\u0022name\u0022:\u0022laravel-activitylog\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-backup\u0022,\u0022name\u0022:\u0022laravel-backup\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-backup-server\u0022,\u0022name\u0022:\u0022laravel-backup-server\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-blade-x\u0022,\u0022name\u0022:\u0022laravel-blade-x\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-comments\u0022,\u0022name\u0022:\u0022laravel-comments\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-dashboard\u0022,\u0022name\u0022:\u0022laravel-dashboard\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-data\u0022,\u0022name\u0022:\u0022laravel-data\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-dynamic-servers\u0022,\u0022name\u0022:\u0022laravel-dynamic-servers\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-error-solutions\u0022,\u0022name\u0022:\u0022laravel-error-solutions\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-event-sourcing\u0022,\u0022name\u0022:\u0022laravel-event-sourcing\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-health\u0022,\u0022name\u0022:\u0022laravel-health\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-html\u0022,\u0022name\u0022:\u0022laravel-html\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-livewire-wizard\u0022,\u0022name\u0022:\u0022laravel-livewire-wizard\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-markdown\u0022,\u0022name\u0022:\u0022laravel-markdown\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-medialibrary\u0022,\u0022name\u0022:\u0022laravel-medialibrary\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-medialibrary-pro\u0022,\u0022name\u0022:\u0022laravel-medialibrary-pro\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-mobile-pass\u0022,\u0022name\u0022:\u0022laravel-mobile-pass\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-model-states\u0022,\u0022name\u0022:\u0022laravel-model-states\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-multitenancy\u0022,\u0022name\u0022:\u0022laravel-multitenancy\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-notification-log\u0022,\u0022name\u0022:\u0022laravel-notification-log\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-one-time-passwords\u0022,\u0022name\u0022:\u0022laravel-one-time-passwords\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-passkeys\u0022,\u0022name\u0022:\u0022laravel-passkeys\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-pdf\u0022,\u0022name\u0022:\u0022laravel-pdf\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-permission\u0022,\u0022name\u0022:\u0022laravel-permission\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-prometheus\u0022,\u0022name\u0022:\u0022laravel-prometheus\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-query-builder\u0022,\u0022name\u0022:\u0022laravel-query-builder\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-route-discovery\u0022,\u0022name\u0022:\u0022laravel-route-discovery\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-server-monitor\u0022,\u0022name\u0022:\u0022laravel-server-monitor\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-site-search\u0022,\u0022name\u0022:\u0022laravel-site-search\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-slack-slash-command\u0022,\u0022name\u0022:\u0022laravel-slack-slash-command\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-tags\u0022,\u0022name\u0022:\u0022laravel-tags\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-translatable\u0022,\u0022name\u0022:\u0022laravel-translatable\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-uptime-monitor\u0022,\u0022name\u0022:\u0022laravel-uptime-monitor\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022laravel-url-ai-transformer\u0022,\u0022name\u0022:\u0022laravel-url-ai-transformer\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022lighthouse-php\u0022,\u0022name\u0022:\u0022lighthouse-php\u0022,\u0022description\u0022:\u0022Laravel\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022menu\u0022,\u0022name\u0022:\u0022menu\u0022,\u0022description\u0022:\u0022General PHP\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022typescript-transformer\u0022,\u0022name\u0022:\u0022typescript-transformer\u0022,\u0022description\u0022:\u0022General PHP\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]},{\u0022id\u0022:\u0022wordpress-mailcoach\u0022,\u0022name\u0022:\u0022wordpress-mailcoach\u0022,\u0022description\u0022:\u0022Other\u0022,\u0022synonyms\u0022:[],\u0022dependencies\u0022:[]}]'),
+        showResultsWithoutInput: '1',
+    })"
+         x-init="init()"
+         x-show.important="isOpen"
+         x-cloak
+                  @keydown.window.prevent.cmd.k="toggleOpen()"
+         @keydown.window.prevent.ctrl.k="toggleOpen()"
+                  @keydown.window.escape="isOpen = false"
+         @toggle-spotlight.window="toggleOpen()"
+         @open-spotlight.window="() => {
+            isOpen = true;
+            input = '';
+            setTimeout(() => {
+                $refs.input.focus()
+            }, 100)
+        }"
+         class="fixed z-50 px-4 pt-16 flex items-start justify-center inset-0 sm:pt-24">
+        <div x-show="isOpen" @click="isOpen = false" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150"
+             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             class="fixed inset-0 transition-opacity">
+            <div class="absolute inset-0 bg-gray-900 opacity-50"></div>
+        </div>
+
+        <div x-show="isOpen" x-transition:enter="ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="relative bg-gray-900 rounded-lg overflow-hidden shadow-xl transform transition-all max-w-lg w-full">
+            <div class="relative">
+                <div class="absolute h-full right-5 flex items-center">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" wire:loading.delay>
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <input @keydown.tab.prevent="" @keydown.prevent.stop.enter="go()" @keydown.prevent.arrow-up="selectUp()"
+                       @keydown.prevent.arrow-down="selectDown()" x-ref="input" x-model="input"
+                       type="text"
+                       style="caret-color: #6b7280; border: 0 !important;"
+                       class="appearance-none w-full bg-transparent px-6 py-4 text-gray-300 text-lg placeholder-gray-500 focus:border-0 focus:border-transparent focus:shadow-none outline-none focus:outline-none"
+                       x-bind:placeholder="inputPlaceholder">
+            </div>
+            <div class="border-t border-gray-800" x-show="filteredItems().length > 0" style="display: none;">
+                <ul x-ref="results" style="max-height: 265px;" class="overflow-y-auto">
+                    <template x-for="(item, i) in filteredItems()" :key>
+                        <li>
+                            <button @click="go(item[0].item.id)" class="block w-full px-6 py-3 text-left"
+                                    :class="{ 'bg-gray-700': selected === i, 'hover:bg-gray-800': selected !== i }">
+                                <span x-text="item[0].item.name"
+                                      :class="{'text-gray-300': selected !== i, 'text-white': selected === i }"></span>
+                                <span x-text="item[0].item.description" class="ml-1"
+                                      :class="{'text-gray-500': selected !== i, 'text-gray-400': selected === i }"></span>
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+    </main>
+
+    <footer
+            class="bg-white text-oss-royal-blue border-t border-oss-gray | print:bg-transparent"
+    >
+    <div class="flex-none pt-16 pb-8 | print:pb-2" role="navigation">
+        <div class="wrap links  links-gray text-gray  leading-loose | md:leading-normal">
+            <div class="grid grid-cols-2 items-start text-sm | md:flex md:justify-between">
+                <ul class=" md:grid grid-flow-col gap-6 justify-between md:text-lg | print:hidden"><li><a href="https://spatie.be/products">Products</a></li><li><a href="https://spatie.be/open-source">Open Source</a></li><li><a href="https://spatie.be/courses">Courses</a></li><li><a href="https://spatie.be/web-development">Web Development</a></li></ul>
+
+                <div class="grid | md:grid-flow-col md:items-center md:ml-12 md:gap-12">
+                    <a href="https://spatie.be/vacancies" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Vacancies</a><a href="https://spatie.be/about-us" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">About</a><a href="https://spatie.be/blog" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Blog</a><a href="https://spatie.be/docs" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue font-bold">Docs</a><a href="https://spatie.be/guidelines" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Guidelines</a><a href="https://spatie.myspreadshop.net" class="first:-m-1 first:p-1 rounded-sm text-oss-royal-blue-light sm:text-oss-royal-blue">Merch ↗</a><a href="https://spatie.be/login">
+    <span class="icon fill-current text-oss-royal-blue" title="Log in">
+        <span class="mr-2 md:hidden">Log in</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M313.6 304c-28.7 0-42.5 16-89.6 16-47.1 0-60.8-16-89.6-16C60.2 304 0 364.2 0 438.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-25.6c0-74.2-60.2-134.4-134.4-134.4zM400 464H48v-25.6c0-47.6 38.8-86.4 86.4-86.4 14.6 0 38.3 16 89.6 16 51.7 0 74.9-16 89.6-16 47.6 0 86.4 38.8 86.4 86.4V464zM224 288c79.5 0 144-64.5 144-144S303.5 0 224 0 80 64.5 80 144s64.5 144 144 144zm0-240c52.9 0 96 43.1 96 96s-43.1 96-96 96-96-43.1-96-96 43.1-96 96-96z"/></svg>
+    </span>
+</a>
+
+                </div>
+            </div>
+            <hr class="my-8 h-2px text-gray opacity-25 rounded | print:text-black" style="page-break-after: avoid;">
+            <div class="grid gap-4 text-sm | sm:grid-cols-2 sm:gap-8 | md:flex flex-row-reverse justify-between">
+                <address class="grid gap-4 | sm:gap-0 | md:grid-flow-col md:gap-8 md:text-right">
+                    <div>
+                        <a class="group flex items-end | md:flex-row-reverse"
+                           href="https://goo.gl/maps/A2zoLK3nVF9V8jydA" target="_blank" rel="nofollow noreferrer noopener">
+                            <span>
+                                Kruikstraat 22, Box 12
+                                <br>
+                                2018 Antwerp, Belgium
+                            </span>
+                            <span class="icon mb-px px-1 fill-current text-gray-lighter group-hover:text-pink transition-all transition-100 | print:hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"/></svg>
+<!--
+Font Awesome Pro 5.2.0 by @fontawesome - https://fontawesome.com
+License - https://fontawesome.com/license (Commercial License)
+-->
+
+                            </span>
+                        </a>
+                    </div>
+                    <div>
+                        <a href="mailto:info@spatie.be">info@spatie.be</a>
+                        <br>
+                        <a href="#tel">+32 3 292 56 79</a>
+                    </div>
+                </address>
+                <ul class="hidden | md:grid md:grid-flow-col md:gap-6 | print:hidden">
+                    <li>
+                        <a href="https://github.com/spatie" target="_blank" rel="nofollow noreferrer noopener">
+                            GitHub
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.instagram.com/spatie_be" target="_blank" rel="nofollow noreferrer noopener">
+                            Instagram
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://be.linkedin.com/company/spatie" rel="me" target="_blank" rel="nofollow noreferrer noopener">
+                            LinkedIn
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://twitter.com/spatie_be" target="_blank" rel="nofollow noreferrer noopener">
+                            Twitter
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://bsky.app/profile/spatie.be" target="_blank" rel="nofollow noreferrer noopener">
+                               Bluesky
+                        </a>
+                    </li>
+                    <!-- Keeping this here for Mastodon profile verificaiton -->
+                    <li class="hidden">
+                        <a href="https://phpc.social/@spatie" rel="me" target="_blank" rel="nofollow noreferrer noopener">
+                            Mastodon
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.youtube.com/channel/UCoBbei3S9JLTcS2VeEOWDeQ" target="_blank" rel="nofollow noreferrer noopener">
+                            YouTube
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrap">
+        <ul class="grid md:grid-flow-col justify-start  links links-gray opacity-50  text-xs py-4 | md:justify-end md:gap-6 | print:hidden">
+            <li><a href="https://spatie.be/privacy">Privacy</a></li>
+            <li><a href="https://spatie.be/disclaimer">Disclaimer</a></li>
+        </ul>
+    </div>
+</footer>
+
+<div id="tel" class="modal" onclick="history.back()">
+    <div class="m-8 text-center bg-white p-8 z-20 shadow-lg | md:p-16">
+        <a href="tel:+3232925679">
+            <p class="font-sans-bold whitespace-nowrap" style="font-size: 9vw;">+32 3 292 56 79</p>
+        </a>
+        <p class="md:absolute left-0 right-0 bottom-0 md:text-lg md:p-8">
+                            <span class="text-pink-dark links-underline links-pink">Our office is closed now, <a href="mailto:info@spatie.be?subject=I%27d%20like%20to%20have%20a%20chat%21&amp;body=Tell%20us%20how%20we%20can%20help%20you%3A%0A-%20Call%20you%20back%0A-%20Arrange%20a%20meeting%0A-%20%E2%80%A6%0A">email us instead</a></span>
+                    </p>
+    </div>
+</div>
+
+    
+    <script src="/livewire/livewire.min.js?id=646f9d24"   data-csrf="Xi49m7YTRVKDFsKtXNkji9KVKTH7FhEBQIM1SeXU" data-update-uri="/livewire/update" data-navigate-once="true"></script>
+        <script src="https://spatie.be/_laravel-comments-livewire/scripts.js?v=3.2.1"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js"
+            defer></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('modals', {
+                openModals: [],
+                onConfirm: null,
+                init() {
+                    if (window.location.hash) {
+                        this.openModals.push(window.location.hash.replace('#', ''));
+                    }
+                },
+                isOpen(id) {
+                    return this.openModals.includes(id);
+                },
+                open(id) {
+                    this.openModals.push(id);
+                    window.location.hash = id;
+                    Alpine.nextTick(() => {
+                        const input = document.querySelector(`#modal-${id} input:not([type=hidden])`);
+                        if (input) {
+                            input.focus();
+                            return;
+                        }
+
+                        const button = document.querySelector(`#modal-${id} [data-confirm]`);
+                        if (button) button.focus();
+                    });
+                },
+                close(id) {
+                    this.openModals = this.openModals.filter(modal => modal !== id);
+                    history.pushState('', document.title, window.location.pathname + window.location.search);
+                },
+            });
+
+            Alpine.data('compose', ({ text, defer = false } = {}) => {
+                // Store the editor as a non-reactive instance property
+                let editor;
+
+                return {
+                    text,
+
+                    init() {
+                        if (! defer) {
+                            this.load();
+                        }
+                    },
+
+                    load() {
+                        if (editor) {
+                            return;
+                        }
+
+                        const textarea = this.$el.querySelector('textarea');
+
+                        if (! textarea) {
+                            return;
+                        }
+
+                        editor = new SimpleMDE({
+                            element: textarea,
+                            hideIcons: ['heading', 'image', 'preview', 'side-by-side', 'fullscreen', 'guide'],
+                            spellChecker: false,
+                            status: false,
+                        });
+
+                        editor.codemirror.on("change", () => {
+                            this.text = editor.value();
+                        });
+                    },
+
+                    clear() {
+                        editor.value('');
+                    },
+                };
+            });
+        });
+    </script>
+    <script defer src="https://unpkg.com/@alpinejs/focus@3.10.5/dist/cdn.min.js"></script>
+
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"Spatie","email":"info@spatie.be","telephone":"+32 3 292 56 79","vatID":"BE0809.387.596","url":["https://spatie.be","https://twitter.com/spatie_be"],"image":"https://spatie.be/images/og-image.jpg","address":{"@type":"PostalAddress","addressLocality":"Antwerp","addressRegion":"Antwerp","postalCode":"2060","streetAddress":"Kruikstraat 22 bus 12","addressCountry":"Belgium"},"founders":[{"@type":"Person","name":"Freek Van der Herten","jobTitle":"Backend developer","url":["https://freek.dev","https://twitter.com/freekmurze"]},{"@type":"Person","name":"Jef Van der Voort","jobTitle":"Account manager","url":["https://twitter.com/vdv_jef"],"email":"jef@spatie.be"}],"employees":[{"@type":"Person","name":"Alex Vanderbist","jobTitle":"Backend developer","url":["https://alexvanderbist.com","https://twitter.com/alex_"]},{"@type":"Person","name":"Sebastian De Deyne","jobTitle":"Full stack developer","url":["https://sebastiandedeyne.com","https://twitter.com/sebdedeyne"]},{"@type":"Person","name":"Ruben Van Assche","jobTitle":"Backend developer","url":["https://rubenvanassche.com","https://twitter.com/rubenvanassche"]},{"@type":"Person","name":"Tim Van Dijck","jobTitle":"Full stack developer","url":["https://veedee.dev","https://twitter.com/timvandijck"]},{"@type":"Person","name":"Jimi Robaer","jobTitle":"Designer","url":["https://twitter.com/jimirobaer"]},{"@type":"Person","name":"Sébastien Henau","jobTitle":"Frontend developer","url":["https://sebastienhenau.com"]},{"@type":"Person","name":"Zuzana Kunckova","jobTitle":"Support engineer","url":["https://www.zuzana-k.com","https://twitter.com/zuzana_kunckova"]},{"@type":"Person","name":"Nick Bevers","jobTitle":"Frontend developer","url":["https://nickbevers.dev"]},{"@type":"Person","name":"Sushanta Pyakurel","jobTitle":"Backend developer","url":["https://sushantapyakurel.medium.com"]},{"@type":"Person","name":"Dries Heyninck","jobTitle":"Frontend developer","url":[]},{"@type":"Person","name":"Marceli Wilczynski","jobTitle":"Backend developer","url":[]}]}</script>
+
+        <!-- search-modal Modal -->
+    <div
+        x-data
+                x-show="$store.modals.isOpen('search-modal')"
+        style="display: none"
+        x-on:keydown.escape.prevent.stop="$store.modals.close('search-modal')"
+        x-on:keydown.window.escape.prevent.stop="$store.modals.close('search-modal')"
+        role="dialog"
+        aria-modal="true"
+        id="modal-search-modal"
+        x-id="['modal-title']"
+        class="fixed inset-0 overflow-y-auto z-50"
+        @modal-closed.window="$store.modals.close($event.detail.modal)"
+        x-ref="modal"
+        
+    >
+        <!-- Overlay -->
+        <div x-show="$store.modals.isOpen('search-modal')" x-transition.opacity class="fixed inset-0" style="background-color: rgba(0, 0, 0, .5)"></div>
+
+        <!-- Panel -->
+        <div
+            x-show="$store.modals.isOpen('search-modal')" x-transition
+                            x-on:click="if ($event.target !== $el) return; $store.modals.close('search-modal')"
+                        class="relative h-screen min-h-screen flex items-center justify-center p-4"
+        >
+            <div
+                x-trap.noscroll.inert="$store.modals.isOpen('search-modal')"
+                class="relative search-modal-wrapper rounded-sm  search-modal-wrapper-md  "
+            >
+                <div class="search-modal">
+                                        <div class="search-modal-content scrollbar">
+                        <div wire:snapshot="{&quot;data&quot;:{&quot;query&quot;:&quot;&quot;,&quot;currentUrl&quot;:&quot;https:\/\/spatie.be\/docs\/laravel-event-sourcing\/v7\/introduction&quot;},&quot;memo&quot;:{&quot;id&quot;:&quot;Ca6k3UjvXHNlRUSjNnof&quot;,&quot;name&quot;:&quot;search-docs&quot;,&quot;path&quot;:&quot;docs\/laravel-event-sourcing\/v7\/introduction&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;release&quot;:&quot;a-a-a&quot;,&quot;children&quot;:[],&quot;scripts&quot;:[],&quot;assets&quot;:[],&quot;errors&quot;:[],&quot;locale&quot;:&quot;en&quot;},&quot;checksum&quot;:&quot;ab919e25b7cb0220ad50ca5f5e1d8fe8ffb7be0376e8ba398bd21b0f94bae990&quot;}" wire:effects="{&quot;partials&quot;:[],&quot;url&quot;:{&quot;query&quot;:{&quot;as&quot;:&quot;query&quot;,&quot;use&quot;:&quot;push&quot;,&quot;alwaysShow&quot;:false,&quot;except&quot;:&quot;&quot;}}}" wire:id="Ca6k3UjvXHNlRUSjNnof"
+    x-data="{
+        query: window.Livewire.find('Ca6k3UjvXHNlRUSjNnof').entangle('query').live,
+        selectedHit: 0,
+    }"
+    x-init="$watch('query', () => this.selectedHit = 0)"
+    @keyup.down.prevent="selectedHit == 0 - 1 ? selectedHit = 0 : selectedHit++; document.getElementById('hit-' + selectedHit).scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'}); document.getElementById('hit-' + selectedHit).focus()"
+    @keyup.up.prevent="selectedHit == 0 ? selectedHit = 0 - 1 : selectedHit--; document.getElementById('hit-' + selectedHit).scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'nearest'}); document.getElementById('hit-' + selectedHit).focus()"
+    @keyup.slash.window="$refs.search.focus()"
+    class="relative max-w-full max-h-[50vh]"
+    style="width: 48rem; min-height: 16rem"
+>
+    <div class="relative border-b border-blue-lighter px-4 py-3 -mt-6 -mb-6 -mx-6 flex justify-between items-center">
+        <input wire:model.live="query"
+               x-ref="search"
+               type="search"
+               placeholder="Search our docs..."
+               class="w-full relative z-10"
+               @keyup.esc.window="query = ''"
+        >
+
+        <button x-on:click.prevent="$store.modals.close('search-modal')" class="text-xs w-12 flex text-gray border-gray items-center justify-center h-6 font-bold uppercase tracking-wide border rounded-lg">ESC</button>
+    </div>
+
+    <ul class="py-6 mt-6 flex flex-col gap-y-4 overflow-auto" style="max-height: 40vh">
+        <!--[if BLOCK]><![endif]-->            <p class="text-slate-500">Enter a search term to find results in the documentation.</p>
+        <!--[if ENDBLOCK]><![endif]-->    </ul>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
