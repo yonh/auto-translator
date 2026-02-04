@@ -5,6 +5,10 @@ import { PluginSettings } from '~/src/types';
 
 let pageManager: PageTranslationManagerV2 | null = null;
 let currentSettings: PluginSettings | null = null;
+let floatingControl: HTMLDivElement | null = null;
+let statusTextEl: HTMLSpanElement | null = null;
+let actionButton: HTMLButtonElement | null = null;
+let unsubscribeStatus: (() => void) | null = null;
 
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
@@ -39,6 +43,89 @@ async function loadSettings(): Promise<PluginSettings> {
   }
 }
 
+/**
+ * Updates the floating control to reflect the latest translation status.
+ */
+function updateFloatingStatus(status: string): void {
+  if (!statusTextEl || !actionButton) return;
+  statusTextEl.textContent = status;
+
+  if (status === 'translating' || status === 'detecting') {
+    actionButton.textContent = 'Stop';
+    actionButton.style.background = '#ef4444';
+  } else {
+    actionButton.textContent = 'Translate';
+    actionButton.style.background = '#10b981';
+  }
+}
+
+/**
+ * Binds status updates from the translation manager to the floating control.
+ */
+function bindStatusUpdates(): void {
+  if (!pageManager) return;
+  unsubscribeStatus?.();
+  unsubscribeStatus = pageManager.onStatusChange((status) => {
+    updateFloatingStatus(status);
+  });
+  updateFloatingStatus(pageManager.getStatus());
+}
+
+function ensureFloatingControl(): void {
+  if (floatingControl) return;
+
+  floatingControl = document.createElement('div');
+  floatingControl.id = 'at-floating-toggle';
+  floatingControl.setAttribute('style', `
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    font-size: 13px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    z-index: 2147483647;
+    backdrop-filter: blur(6px);
+  `);
+
+  statusTextEl = document.createElement('span');
+  statusTextEl.textContent = 'Idle';
+
+  actionButton = document.createElement('button');
+  actionButton.textContent = 'Translate';
+  actionButton.setAttribute('style', `
+    padding: 6px 10px;
+    background: #10b981;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  `);
+
+  actionButton.addEventListener('click', () => {
+    if (!pageManager) return;
+    const status = pageManager.getStatus();
+    if (status === 'translating') {
+      pageManager.cancel();
+      return;
+    }
+    pageManager.translatePage().catch((err) => {
+      console.error('[Content Script] Floating translate failed:', err);
+    });
+  });
+
+  floatingControl.appendChild(statusTextEl);
+  floatingControl.appendChild(actionButton);
+  document.body.appendChild(floatingControl);
+}
+
 async function saveSettings(settings: PluginSettings): Promise<void> {
   try {
     await webext.storage.local.set({ settings });
@@ -64,9 +151,33 @@ async function initialize(): Promise<void> {
     pageManager = new PageTranslationManagerV2(currentSettings);
     await pageManager.initialize();
     console.log('[Content Script] Translation manager initialized');
+
+    ensureFloatingControl();
+    bindStatusUpdates();
+
+    await autoTranslateIfEnabled();
   } catch (error) {
     console.error('[Content Script] Failed to initialize translation manager:', error);
     pageManager = null;
+  }
+}
+
+/**
+ * Automatically triggers page translation when the plugin is enabled and auto-detect is on.
+ */
+async function autoTranslateIfEnabled(): Promise<void> {
+  if (!pageManager || !currentSettings) {
+    return;
+  }
+
+  if (!currentSettings.enabled || !currentSettings.autoDetect) {
+    return;
+  }
+
+  try {
+    await pageManager.translatePage();
+  } catch (error) {
+    console.error('[Content Script] Auto translation failed:', error);
   }
 }
 
@@ -194,6 +305,18 @@ function handleIncomingMessage(message: any): any {
           return { success: false, error: String(e), id };
         });
 
+    case 'SETTINGS_CHANGED':
+    case 'settingsChanged':
+      console.log('[Content Script] Settings changed:', data);
+      currentSettings = data.settings;
+
+      if (currentSettings && pageManager) {
+        pageManager.updateSettings(currentSettings);
+        bindStatusUpdates();
+      }
+
+      return { success: true, id };
+
     default:
       console.warn(`[Content Script] Unknown message type: ${type}`);
       return {
@@ -218,20 +341,6 @@ export default defineContentScript({
     } else {
       initialize();
     }
-
-    webext.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (message.type === 'SETTINGS_CHANGED' || message.type === 'settingsChanged') {
-        console.log('[Content Script] Settings changed:', message.data);
-        currentSettings = message.data.settings;
-
-        if (currentSettings && pageManager) {
-          pageManager.updateSettings(currentSettings);
-        }
-
-        sendResponse({ success: true });
-        return true;
-      }
-    });
 
     console.log('[Content Script] Loaded');
   }

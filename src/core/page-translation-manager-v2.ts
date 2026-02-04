@@ -36,7 +36,7 @@ export class PageTranslationManagerV2 {
     this.languageCache = new PageLanguageCache();
     this.dynamicHandler = new DynamicContentHandler(this.extractor);
   }
-  
+
   /**
    * Initializes the translation manager.
    */
