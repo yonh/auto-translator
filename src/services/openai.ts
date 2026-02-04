@@ -154,33 +154,36 @@ export class OpenAIService {
     }
 
     const batches = this.buildBatches(pending);
-    for (const batch of batches) {
-      const translations = await this.translateBatchWithRetry(
-        batch.map(item => item.request),
-        model
-      );
 
-      for (let i = 0; i < batch.length; i++) {
-        const request = batch[i].request;
-        const translatedText = translations[i] ?? request.text;
-        results[batch[i].index] = {
-          originalText: request.text,
-          translatedText,
-          sourceLang: request.sourceLang,
-          targetLang: request.targetLang,
-          model,
-          cached: false
-        };
-
-        await translationCache.set(
-          request.text,
-          request.sourceLang,
-          request.targetLang,
-          model,
-          translatedText
+    await Promise.all(
+      batches.map(async (batch) => {
+        const translations = await this.translateBatchWithRetry(
+          batch.map(item => item.request),
+          model
         );
-      }
-    }
+
+        for (let i = 0; i < batch.length; i++) {
+          const request = batch[i].request;
+          const translatedText = translations[i] ?? request.text;
+          results[batch[i].index] = {
+            originalText: request.text,
+            translatedText,
+            sourceLang: request.sourceLang,
+            targetLang: request.targetLang,
+            model,
+            cached: false
+          };
+
+          await translationCache.set(
+            request.text,
+            request.sourceLang,
+            request.targetLang,
+            model,
+            translatedText
+          );
+        }
+      })
+    );
 
     return results.map(result => result!);
   }
