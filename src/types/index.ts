@@ -64,3 +64,17 @@ export interface TextSegment {
 
 // Translation status
 export type TranslationStatus = 'idle' | 'detecting' | 'translating' | 'completed' | 'error';
+
+// Progress information
+export interface ProgressInfo {
+  current: number;
+  total: number;
+  percentage: number;
+}
+
+// Settings export/import format
+export interface SettingsExport {
+  version: string;
+  timestamp: number;
+  settings: PluginSettings;
+}

@@ -222,6 +222,10 @@
         <div class="config-note">
           导出配置可以备份当前设置，导入配置可以快速恢复或共享配置。
         </div>
+        <div v-if="autoLoadedConfig" class="config-auto-loaded">
+          <span class="auto-loaded-icon">✓</span>
+          已自动从 /config.json 加载配置（仅开发环境）
+        </div>
       </section>
     </main>
   </div>
@@ -273,10 +277,16 @@ const cacheMaxAgeDays = ref(7);
 const cacheStats = ref<any>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const importError = ref<string | null>(null);
+const autoLoadedConfig = ref(false); // 标记是否自动加载了配置
 
 onMounted(async () => {
   await loadSettings();
   await loadCacheStats();
+
+  // 开发环境：尝试自动加载本地 config.json
+  if ((import.meta as any).env?.DEV) {
+    await tryAutoLoadConfig();
+  }
 });
 
 async function loadSettings() {
@@ -431,6 +441,60 @@ async function importConfig(event: Event) {
 
   if (target) {
     target.value = '';
+  }
+}
+
+// 开发环境：尝试自动加载本地 config.json
+async function tryAutoLoadConfig() {
+  try {
+    const response = await fetch('/config.json');
+    if (!response.ok) {
+      console.log('[Options] No local config.json found, skipping auto-load');
+      return;
+    }
+
+    const text = await response.text();
+    const imported = JSON.parse(text);
+
+    if (!imported.settings || !imported.version) {
+      console.log('[Options] Invalid config.json format, skipping auto-load');
+      return;
+    }
+
+    const importedSettings = imported.settings;
+
+    const newSettings = {
+      ...settings.value,
+      ...importedSettings,
+      openai: {
+        ...settings.value.openai,
+        ...importedSettings.openai
+      }
+    };
+
+    settings.value = newSettings;
+
+    if (newSettings.openai.models) {
+      modelsText.value = newSettings.openai.models.join('\n');
+    }
+    if (newSettings.whitelist) {
+      whitelistText.value = newSettings.whitelist.join('\n');
+    }
+    if (newSettings.blacklist) {
+      blacklistText.value = newSettings.blacklist.join('\n');
+    }
+    if (newSettings.cacheMaxAge) {
+      cacheMaxAgeDays.value = Math.floor(newSettings.cacheMaxAge / (24 * 60 * 60 * 1000));
+    }
+
+    await saveSettings();
+    autoLoadedConfig.value = true;
+
+    console.log('[Options] Config auto-loaded successfully');
+    await loadCacheStats();
+  } catch (error) {
+    // 静默失败，不显示错误
+    console.log('[Options] Failed to auto-load config:', error);
   }
 }
 </script>
@@ -600,5 +664,31 @@ async function importConfig(event: Event) {
 .stat-label {
   font-size: 12px;
   color: #6b7280;
+}
+
+.config-auto-loaded {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auto-loaded-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
 }
 </style>

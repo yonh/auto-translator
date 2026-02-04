@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Extraction Test Runner</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .header {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+
+    .header p {
+      margin: 0;
+      color: #666;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .summary-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-card .value {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .summary-card.passed .value {
+      color: #10b981;
+    }
+
+    .summary-card.failed .value {
+      color: #ef4444;
+    }
+
+    .summary-card.rate .value {
+      color: #3b82f6;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    button:active {
+      background: #1d4ed8;
+    }
+
+    .test-results {
+      display: grid;
+      gap: 16px;
+    }
+
+    .test-case {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .test-case.passed {
+      border-left: 4px solid #10b981;
+    }
+
+    .test-case.failed {
+      border-left: 4px solid #ef4444;
+    }
+
+    .test-header {
+      padding: 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .test-name {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .test-status {
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .test-status.passed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .test-status.failed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .test-details {
+      padding: 16px;
+    }
+
+    .detail-section {
+      margin-bottom: 16px;
+    }
+
+    .detail-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .code-block {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    .text-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .text-list li {
+      margin-bottom: 4px;
+      color: #374151;
+    }
+
+    .error {
+      color: #ef4444;
+      font-weight: 500;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Text Extraction Test Runner</h1>
+    <p>Tests for verifying the text extraction logic of the translation plugin</p>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card passed">
+      <h3>Passed</h3>
+      <p class="value" id="passed-count">-</p>
+    </div>
+    <div class="summary-card failed">
+      <h3>Failed</h3>
+      <p class="value" id="failed-count">-</p>
+    </div>
+    <div class="summary-card">
+      <h3>Total</h3>
+      <p class="value" id="total-count">-</p>
+    </div>
+    <div class="summary-card rate">
+      <h3>Success Rate</h3>
+      <p class="value" id="success-rate">-</p>
+    </div>
+  </div>
+
+  <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <label style="font-weight: 600; color: #374151; margin-right: 16px;">Extraction Method:</label>
+    <label style="cursor: pointer;">
+      <input type="radio" name="extraction-method" value="original" checked onchange="window.extractionMethod = 'original'">
+      Original
+    </label>
+    <label style="cursor: pointer; margin-left: 16px;">
+      <input type="radio" name="extraction-method" value="improved" onchange="window.extractionMethod = 'improved'">
+      Improved
+    </label>
+  </div>
+
+  <button onclick="runTests()">Run All Tests</button>
+
+  <div id="results" class="test-results hidden"></div>
+
+  <script type="module">
+    import { testCases, runAllTests, createTestContainer, cleanupTestContainer, extractTextForTesting, extractTextImproved } from '../tests/text-extraction.test.ts';
+
+    window.runTests = function() {
+      const results = runAllTests();
+      displayResults(results);
+    };
+
+    window.extractionMethod = 'original';
+
+    function displayResults(results) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.classList.remove('hidden');
+
+      document.getElementById('passed-count').textContent = results.passed;
+      document.getElementById('failed-count').textContent = results.failed;
+      document.getElementById('total-count').textContent = results.total;
+      document.getElementById('success-rate').textContent = `${((results.passed / results.total) * 100).toFixed(1)}%`;
+
+      resultsDiv.innerHTML = '';
+
+      const extractFunc = window.extractionMethod === 'improved' ? extractTextImproved : extractTextForTesting;
+
+      for (const testCase of testCases) {
+        const container = createTestContainer(testCase.html);
+        document.body.appendChild(container);
+
+        try {
+          const extractedTexts = extractFunc(container);
+
+          const allExpectedFound = testCase.expectedTexts.every(expected =>
+            extractedTexts.some(extracted => extracted.trim() === expected.trim())
+          );
+
+          const testCaseDiv = document.createElement('div');
+          testCaseDiv.className = `test-case ${allExpectedFound ? 'passed' : 'failed'}`;
+
+          testCaseDiv.innerHTML = `
+            <div class="test-header">
+              <span class="test-name">${testCase.name}</span>
+              <span class="test-status ${allExpectedFound ? 'passed' : 'failed'}">
+                ${allExpectedFound ? 'Passed' : 'Failed'}
+              </span>
+            </div>
+            <div class="test-details">
+              <div class="detail-section">
+                <div class="detail-label">HTML</div>
+                <pre class="code-block">${escapeHtml(testCase.html)}</pre>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Expected Texts</div>
+                <ul class="text-list">
+                  ${testCase.expectedTexts.map(text => `<li>${escapeHtml(text)}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Extracted Texts</div>
+                <ul class="text-list">
+                  ${extractedTexts.map(text => `<li>${escapeHtml(text)}</li>`).join('')}
+                </ul>
+              </div>
+              ${!allExpectedFound ? `
+                <div class="detail-section">
+                  <div class="detail-label error">Missing Texts</div>
+                  <ul class="text-list">
+                    ${testCase.expectedTexts
+                      .filter(expected => !extractedTexts.some(extracted => extracted.trim() === expected.trim()))
+                      .map(text => `<li class="error">${escapeHtml(text)}</li>`)
+                      .join('')}
+                  </ul>
+                </div>
+              ` : ''}
+            </div>
+          `;
+
+          resultsDiv.appendChild(testCaseDiv);
+        } catch (error) {
+          console.error('Error running test:', error);
+        } finally {
+          cleanupTestContainer();
+        }
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function extractTextImproved(container) {
+      const results = [];
+      const excludeTags = ['script', 'style', 'noscript', 'iframe', 'svg', 'canvas', 'video', 'audio', 'code', 'pre', 'kbd', 'samp'];
+      const containerTags = ['p', 'div', 'section', 'article', 'aside', 'li', 'td', 'th', 'dt', 'dd', 'figcaption', 'caption', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+      const processed = new Set();
+
+      const walker = document.createTreeWalker(
+        container,
+        NodeFilter.SHOW_ELEMENT,
+        {
+          acceptNode: (node) => {
+            if (node instanceof HTMLElement) {
+              if (excludeTags.includes(node.tagName.toLowerCase())) {
+                return NodeFilter.FILTER_REJECT;
+              }
+
+              if (node.getAttribute('translate') === 'no' ||
+                  node.getAttribute('data-translate') === 'false' ||
+                  (typeof node.className === 'string' && node.className.includes('notranslate'))) {
+                return NodeFilter.FILTER_REJECT;
+              }
+
+              if (containerTags.includes(node.tagName.toLowerCase())) {
+                const text = node.textContent?.trim();
+                if (text && text.length >= 2) {
+                  return NodeFilter.FILTER_ACCEPT;
+                }
+              }
+            }
+
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+      );
+
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node instanceof HTMLElement) {
+          const text = node.textContent?.trim();
+
+          if (!text || text.length < 2) {
+            continue;
+          }
+
+          if (processed.has(node)) {
+            continue;
+          }
+
+          let current = node.parentElement;
+          let isContained = false;
+          while (current && current !== container) {
+            if (processed.has(current)) {
+              isContained = true;
+              break;
+            }
+            current = current.parentElement;
+          }
+
+          if (isContained) {
+            continue;
+          }
+
+          processed.add(node);
+
+          if (text.length >= 3) {
+            results.push(text);
+          }
+        }
+      }
+
+      return results;
+    }
+
+    function extractTextForTesting(container) {
+      const results = [];
+
+      const walker = document.createTreeWalker(
+        container,
+        NodeFilter.SHOW_ELEMENT,
+        {
+          acceptNode: (node) => {
+            if (node instanceof HTMLElement) {
+              const excludeTags = ['script', 'style', 'noscript', 'iframe', 'svg', 'canvas', 'video', 'audio', 'code', 'pre', 'kbd', 'samp'];
+              if (excludeTags.includes(node.tagName.toLowerCase())) {
+                return NodeFilter.FILTER_REJECT;
+              }
+
+              if (node.getAttribute('translate') === 'no' ||
+                  node.getAttribute('data-translate') === 'false' ||
+                  (typeof node.className === 'string' && node.className.includes('notranslate'))) {
+                return NodeFilter.FILTER_REJECT;
+              }
+
+              const containerTags = ['p', 'div', 'section', 'article', 'aside', 'li', 'td', 'th', 'dt', 'dd', 'figcaption', 'caption', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+              if (containerTags.includes(node.tagName.toLowerCase())) {
+                const text = node.textContent?.trim();
+                if (text && text.length >= 2) {
+                  return NodeFilter.FILTER_ACCEPT;
+                }
+              }
+            }
+
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+      );
+
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node instanceof HTMLElement) {
+          const text = node.textContent?.trim();
+          if (text && text.length >= 3) {
+            results.push(text);
+          }
+        }
+      }
+
+      return results;
+    }
+  </script>
+</body>
+</html>

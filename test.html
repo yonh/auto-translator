@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Translation Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #2563eb;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    p {
+      margin: 20px 0;
+      font-size: 16px;
+    }
+    .highlight {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 10px 5px;
+    }
+    .button:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <h1>Auto Translator Test Page</h1>
+
+  <p>This is a test page for the Auto Translator browser extension.</p>
+
+  <div class="highlight">
+    <p><strong>Instructions:</strong></p>
+    <ol>
+      <li>Install the extension in your browser</li>
+      <li>Configure your OpenAI API Key in the settings</li>
+      <li>Enable automatic translation in the popup</li>
+      <li>Click the extension icon and select "Translate Current Page"</li>
+      <li>The English text on this page should be translated to Chinese</li>
+    </ol>
+  </div>
+
+  <p>This paragraph contains English text that should be translated when the extension is working correctly. The translation should maintain the meaning of the original text while converting it to the target language.</p>
+
+  <p>Here is another paragraph with different content to test the translation functionality with multiple text segments. This helps ensure that the batch translation feature is working as expected.</p>
+
+  <div class="highlight">
+    <p><strong>Expected Result:</strong></p>
+    <p>After translation, all English text should be converted to Chinese (or your selected target language). A small checkmark (✓) badge should appear next to translated elements if the translation badge is enabled.</p>
+  </div>
+
+  <p><strong>Note:</strong> Make sure you have configured a valid OpenAI API key in the extension settings before attempting to translate this page.</p>
+
+</body>
+</html>

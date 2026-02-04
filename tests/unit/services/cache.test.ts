@@ -2,20 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { translationCache } from '../../../src/services/cache';
 import { CacheEntry } from '../../../src/types';
 
-const mockStorage = {
-  get: vi.fn(),
-  set: vi.fn(),
-  remove: vi.fn(),
-};
-
 vi.stubGlobal('browser', {
   storage: {
-    local: {
-      get: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockResolvedValue(),
-      remove: vi.fn().mockResolvedValue(),
-    clear: vi.fn().mockResolvedValue()
-  }
+    local: {}
   }
 });
 
@@ -25,6 +14,10 @@ const CACHE_INDEX = 'trans_cache_index';
 describe('TranslationCache', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    browser.storage.local.get = vi.fn().mockResolvedValue({});
+    browser.storage.local.set = vi.fn().mockResolvedValue();
+    browser.storage.local.remove = vi.fn().mockResolvedValue();
+    browser.storage.local.clear = vi.fn().mockResolvedValue();
   });
 
   afterEach(() => {
@@ -33,29 +26,29 @@ describe('TranslationCache', () => {
 
   describe('init', () => {
     it('should initialize cache index', async () => {
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {}
       });
 
       await translationCache.init(10000);
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      expect(mockStorageGet).toHaveBeenCalledTimes(1);
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.get).toHaveBeenCalledTimes(1);
     });
 
     it('should set max age when provided', async () => {
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {}
       });
 
       await translationCache.init(5000);
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {}
       });
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      expect(mockStorageGet).toHaveBeenCalledTimes(1);
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.get).toHaveBeenCalledTimes(1);
     });
 
     it('should clean expired cache entries', async () => {
@@ -64,7 +57,7 @@ describe('TranslationCache', () => {
         timestamp: now - 5000
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {
           'trans_cache_expired': expiredEntry
         }
@@ -72,9 +65,9 @@ describe('TranslationCache', () => {
 
       await translationCache.init();
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      expect(mockStorageRemove).toHaveBeenCalledWith('trans_cache_expired');
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.remove).toHaveBeenCalledWith('trans_cache_expired');
     });
   });
 
@@ -147,7 +140,7 @@ describe('TranslationCache', () => {
         hash: 'test-hash-123'
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [`trans_cache_${validEntry.hash}`]: validEntry
       });
 
@@ -170,10 +163,10 @@ describe('TranslationCache', () => {
         hash: 'test-hash-123'
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [`trans_cache_${expiredEntry.hash}`]: expiredEntry
       });
-      mockStorageRemove.mockResolvedValue();
+      browser.storage.local.remove.mockResolvedValue();
 
       const result = await translationCache.get('Hello', 'en', 'zh-CN', 'gpt-3.5-turbo');
 
@@ -181,7 +174,7 @@ describe('TranslationCache', () => {
     });
 
     it('should return null for non-existent cache', async () => {
-      mockStorageGet.mockResolvedValue({});
+      browser.storage.local.get.mockResolvedValue({});
 
       const result = await translationCache.get('Hello', 'en', 'zh-CN', 'gpt-3.5-turbo');
 
@@ -191,7 +184,7 @@ describe('TranslationCache', () => {
 
   describe('set', () => {
     beforeEach(() => {
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {}
       });
     });
@@ -199,8 +192,8 @@ describe('TranslationCache', () => {
     it('should write cache entry to storage', async () => {
       await translationCache.set('Hello', 'en', 'zh-CN', 'gpt-3.5-turbo', '你好');
 
-      expect(mockStorageSet).toHaveBeenCalled();
-      const storageCall = mockStorageSet.mock.calls[0][0];
+      expect(browser.storage.local.set).toHaveBeenCalled();
+      const storageCall = browser.storage.local.set.mock.calls[0][0];
       const [key, value] = JSON.parse(storageCall.args[0][0]);
       expect(key).toContain('trans_cache_');
       expect(JSON.parse(value)).toHaveProperty('originalText');
@@ -215,8 +208,8 @@ describe('TranslationCache', () => {
     it('should update cache index', async () => {
       await translationCache.set('Hello', 'en', 'zh-CN', 'gpt-3.5-turbo', '你好');
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      const indexCall = mockStorageGet.mock.calls.find(
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      const indexCall = browser.storage.local.get.mock.calls.find(
         (call: any) => call[0] === CACHE_INDEX
       );
       expect(indexCall).toBeDefined();
@@ -225,14 +218,14 @@ describe('TranslationCache', () => {
     it('should handle special characters', async () => {
       await translationCache.set('Hello!@#$', 'en', 'zh-CN', 'gpt-3.5-turbo', '测试！');
 
-      expect(mockStorageSet).toHaveBeenCalled();
+      expect(browser.storage.local.set).toHaveBeenCalled();
     });
 
     it('should handle long text', async () => {
       const longText = 'Hello World '.repeat(100);
       await translationCache.set(longText, 'en', 'zh-CN', 'gpt-3.5-turbo', '你好'.repeat(100));
 
-      expect(mockStorageSet).toHaveBeenCalled();
+      expect(browser.storage.local.set).toHaveBeenCalled();
     });
   });
 
@@ -244,20 +237,20 @@ describe('TranslationCache', () => {
         hash: 'test-hash-123'
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {
           'trans_cache_test-hash-123': expiredEntry
         }
       });
-      mockStorageRemove.mockResolvedValue();
+      browser.storage.local.remove.mockResolvedValue();
     });
 
     it('should remove cache entry from storage', async () => {
       await translationCache.delete('test-hash-123');
 
-      expect(mockStorageRemove).toHaveBeenCalledWith('trans_cache_test-hash-123');
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      const removeCall = mockStorageRemove.mock.calls.find(
+      expect(browser.storage.local.remove).toHaveBeenCalledWith('trans_cache_test-hash-123');
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      const removeCall = browser.storage.local.remove.mock.calls.find(
         (call: any) => call[0] === 'trans_cache_test-hash-123'
       );
       expect(removeCall).toBeDefined();
@@ -266,7 +259,7 @@ describe('TranslationCache', () => {
     it('should remove entry from index', async () => {
       await translationCache.delete('test-hash-123');
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
     });
   });
 
@@ -282,20 +275,20 @@ describe('TranslationCache', () => {
         hash: 'expired2'
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {
           'trans_cache_expired1': expiredEntry1,
           'trans_cache_expired2': expiredEntry2
         }
       });
-      mockStorageRemove.mockResolvedValue();
+      browser.storage.local.remove.mockResolvedValue();
     });
 
     it('should remove all cache entries', async () => {
       await translationCache.clear();
 
-      expect(mockStorageRemove).toHaveBeenCalled();
-      const removeCalls = mockStorageRemove.mock.calls.filter(
+      expect(browser.storage.local.remove).toHaveBeenCalled();
+      const removeCalls = browser.storage.local.remove.mock.calls.filter(
         (call: any) => call[0]?.startsWith('trans_cache_')
       );
       expect(removeCalls.length).toBe(2);
@@ -304,8 +297,8 @@ describe('TranslationCache', () => {
     it('should clear cache index', async () => {
       await translationCache.clear();
 
-      expect(mockStorageGet).toHaveBeenCalledWith(CACHE_INDEX);
-      expect(mockStorageSet).toHaveBeenCalledWith(
+      expect(browser.storage.local.get).toHaveBeenCalledWith(CACHE_INDEX);
+      expect(browser.storage.local.set).toHaveBeenCalledWith(
         { [CACHE_INDEX]: {} },
         undefined
       );
@@ -343,7 +336,7 @@ describe('TranslationCache', () => {
         hash: 'test-hash-789'
       };
 
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {
           'test-hash-123': entry1,
           'test-hash-456': entry2,
@@ -351,6 +344,7 @@ describe('TranslationCache', () => {
         }
       });
 
+      await translationCache.init();
       const stats = await translationCache.getStats();
 
       expect(stats.size).toBe(3);
@@ -359,10 +353,11 @@ describe('TranslationCache', () => {
     });
 
     it('should return zero stats for empty cache', async () => {
-      mockStorageGet.mockResolvedValue({
+      browser.storage.local.get.mockResolvedValue({
         [CACHE_INDEX]: {}
       });
 
+      await translationCache.init();
       const stats = await translationCache.getStats();
 
       expect(stats.size).toBe(0);

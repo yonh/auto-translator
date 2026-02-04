@@ -230,6 +230,12 @@ export class OpenAIService {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('[OpenAI Service] API request failed:', {
+        url: apiUrl,
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
       throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
@@ -243,11 +249,12 @@ export class OpenAIService {
   }
 
   private buildPrompt(text: string, sourceLang: string, targetLang: string): string {
-    return `Translate the following text from ${sourceLang} to ${targetLang}:
+    // Use XML-like tags to clearly delimit the text to translate
+    // This prevents short texts like "OR" from being misinterpreted as instructions
+    return `Translate the text inside <source> tags from ${sourceLang} to ${targetLang}.
+Output ONLY the translated text, nothing else.
 
-${text}
-
-Provide only the translation, no explanations.`;
+<source>${text}</source>`;
   }
 
   private async waitSlot(): Promise<void> {
