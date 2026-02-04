@@ -8,7 +8,9 @@ let currentSettings: PluginSettings | null = null;
 let floatingControl: HTMLDivElement | null = null;
 let statusTextEl: HTMLSpanElement | null = null;
 let actionButton: HTMLButtonElement | null = null;
+let revertButton: HTMLButtonElement | null = null;
 let unsubscribeStatus: (() => void) | null = null;
+let isTranslated: boolean = false;
 
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
@@ -47,15 +49,19 @@ async function loadSettings(): Promise<PluginSettings> {
  * Updates the floating control to reflect the latest translation status.
  */
 function updateFloatingStatus(status: string): void {
-  if (!statusTextEl || !actionButton) return;
+  if (!statusTextEl || !actionButton || !revertButton) return;
   statusTextEl.textContent = status;
+
+  isTranslated = status === 'completed';
 
   if (status === 'translating' || status === 'detecting') {
     actionButton.textContent = 'Stop';
     actionButton.style.background = '#ef4444';
+    revertButton.disabled = true;
   } else {
     actionButton.textContent = 'Translate';
     actionButton.style.background = '#10b981';
+    revertButton.disabled = !isTranslated;
   }
 }
 
@@ -121,8 +127,34 @@ function ensureFloatingControl(): void {
     });
   });
 
+  revertButton = document.createElement('button');
+  revertButton.textContent = 'Original';
+  revertButton.setAttribute('style', `
+    padding: 6px 10px;
+    background: #374151;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  `);
+  revertButton.disabled = true;
+
+  revertButton.addEventListener('click', () => {
+    if (!pageManager) return;
+    pageManager.cancel();
+    pageManager.revertPage()
+      .then(() => {
+        updateFloatingStatus('idle');
+      })
+      .catch((err) => {
+        console.error('[Content Script] Floating revert failed:', err);
+      });
+  });
+
   floatingControl.appendChild(statusTextEl);
   floatingControl.appendChild(actionButton);
+  floatingControl.appendChild(revertButton);
   document.body.appendChild(floatingControl);
 }
 
