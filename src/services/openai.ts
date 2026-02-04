@@ -30,10 +30,22 @@ export class OpenAIService {
 
   constructor(config: OpenAIConfig) {
     this.config = config;
+    console.log('[OpenAIService] Initialized with config:', {
+      batchMaxItems: this.config.batchMaxItems,
+      batchMaxChars: this.config.batchMaxChars,
+      batchMaxTokens: this.config.batchMaxTokens,
+      batchRetryCount: this.config.batchRetryCount
+    });
   }
 
   updateConfig(config: Partial<OpenAIConfig>): void {
     this.config = { ...this.config, ...config };
+    console.log('[OpenAIService] Config updated:', {
+      batchMaxItems: this.config.batchMaxItems,
+      batchMaxChars: this.config.batchMaxChars,
+      batchMaxTokens: this.config.batchMaxTokens,
+      batchRetryCount: this.config.batchRetryCount
+    });
   }
 
   async translate(req: TranslationRequest): Promise<TranslationResponse> {
@@ -111,32 +123,66 @@ export class OpenAIService {
       return this.translateBatchWithMultipleModels(requests);
     }
 
-    const batchSize = Math.min(this.config.maxConcurrency || 1, requests.length);
-    const results: TranslationResponse[] = [];
+    const results: Array<TranslationResponse | null> = new Array(requests.length).fill(null);
+    const pending: Array<{ request: TranslationRequest; index: number }> = [];
 
-    for (let i = 0; i < requests.length; i += batchSize) {
-      const batch = requests.slice(i, i + batchSize);
-      const batchResults = await Promise.allSettled(
-        batch.map(req => this.translate(req))
+    for (let i = 0; i < requests.length; i++) {
+      const request = requests[i];
+      const cached = await translationCache.get(
+        request.text,
+        request.sourceLang,
+        request.targetLang,
+        model
       );
 
-      for (const result of batchResults) {
-        if (result.status === 'fulfilled') {
-          results.push(result.value);
-        } else {
-          results.push({
-            originalText: requests[results.length].text,
-            translatedText: requests[results.length].text,
-            sourceLang: requests[results.length].sourceLang,
-            targetLang: requests[results.length].targetLang,
-            model,
-            cached: false
-          });
-        }
+      if (cached) {
+        results[i] = {
+          originalText: request.text,
+          translatedText: cached.translatedText,
+          sourceLang: request.sourceLang,
+          targetLang: request.targetLang,
+          model: cached.model,
+          cached: true
+        };
+      } else {
+        pending.push({ request, index: i });
       }
     }
 
-    return results;
+    if (pending.length === 0) {
+      return results.map(result => result!);
+    }
+
+    const batches = this.buildBatches(pending);
+    for (const batch of batches) {
+      const translations = await this.translateBatchWithRetry(
+        batch.map(item => item.request),
+        model
+      );
+
+      for (let i = 0; i < batch.length; i++) {
+        const request = batch[i].request;
+        const translatedText = translations[i] ?? request.text;
+        results[batch[i].index] = {
+          originalText: request.text,
+          translatedText,
+          sourceLang: request.sourceLang,
+          targetLang: request.targetLang,
+          model,
+          cached: false
+        };
+
+        await translationCache.set(
+          request.text,
+          request.sourceLang,
+          request.targetLang,
+          model,
+          translatedText
+        );
+      }
+    }
+
+    return results.map(result => result!);
   }
 
   private async translateBatchWithMultipleModels(
@@ -156,39 +202,46 @@ export class OpenAIService {
         continue;
       }
 
-      const batches: TranslationRequest[][] = [];
-      for (let i = 0; i < modelRequests.length; i += modelCounts) {
-        batches.push(modelRequests.slice(i, i + modelCounts));
-      }
-
-      for (const batch of batches) {
-        const batchResults = await Promise.allSettled(
-          batch.map(req =>
-            this.translate({ ...req, model })
-          )
-        );
-
-        for (const result of batchResults) {
-          if (result.status === 'fulfilled') {
-            results.push(result.value);
-          } else {
-            results.push({
-              originalText: requests[results.length].text,
-              translatedText: requests[results.length].text,
-              sourceLang: requests[results.length].sourceLang,
-              targetLang: requests[results.length].targetLang,
-              model,
-              cached: false
-            });
-          }
-        }
-      }
+      const modelResults = await this.translateBatch(
+        modelRequests.map(req => ({ ...req, model }))
+      );
+      results.push(...modelResults);
     }
 
     return results;
   }
 
   private async translateWithModel(
+    text: string,
+    sourceLang: string,
+    targetLang: string,
+    model: string,
+    signal: AbortSignal
+  ): Promise<string> {
+    const chunkSize = Math.max(0, this.config.chunkSize || 0);
+
+    if (chunkSize > 0 && text.length > chunkSize) {
+      const chunks = this.chunkText(text, chunkSize);
+      const translatedChunks: string[] = [];
+
+      for (const chunk of chunks) {
+        const translatedChunk = await this.translateSingleChunk(
+          chunk,
+          sourceLang,
+          targetLang,
+          model,
+          signal
+        );
+        translatedChunks.push(translatedChunk);
+      }
+
+      return translatedChunks.join('');
+    }
+
+    return this.translateSingleChunk(text, sourceLang, targetLang, model, signal);
+  }
+
+  private async translateSingleChunk(
     text: string,
     sourceLang: string,
     targetLang: string,
@@ -209,14 +262,12 @@ export class OpenAIService {
           content: prompt
         }
       ],
-      temperature: 0.3,
-      max_tokens: 2000
+      temperature: 1.0,
+      max_tokens: 20000
     };
 
     let apiUrl = this.config.baseUrl;
-    if (!apiUrl.endsWith('/chat/completions')) {
-      apiUrl = apiUrl.replace(/\/$/, '') + '/chat/completions';
-    }
+    apiUrl = this.normalizeApiUrl(apiUrl);
 
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -246,6 +297,232 @@ export class OpenAIService {
     }
 
     return data.choices[0].message.content.trim();
+  }
+
+  /**
+   * Build request batches based on item count and character limits.
+   */
+  private buildBatches(
+    items: Array<{ request: TranslationRequest; index: number }>
+  ): Array<Array<{ request: TranslationRequest; index: number }>> {
+    const maxItems = Math.max(1, this.config.batchMaxItems || 10);
+    const maxChars = Math.max(1, this.config.batchMaxChars || 2000);
+    const maxTokens = Math.max(1, this.config.batchMaxTokens || 800);
+    console.log('[OpenAIService] Batch limits:', {
+      maxItems,
+      maxChars,
+      maxTokens,
+      totalItems: items.length
+    });
+    const batches: Array<Array<{ request: TranslationRequest; index: number }>> = [];
+    let current: Array<{ request: TranslationRequest; index: number }> = [];
+    let currentChars = 0;
+    let currentTokens = 0;
+
+    for (const item of items) {
+      const textLength = item.request.text.length;
+      const itemTokens = this.estimateTokens(item.request.text);
+      const nextChars = currentChars + textLength;
+      const nextTokens = currentTokens + itemTokens;
+      if (current.length >= maxItems || nextChars > maxChars || nextTokens > maxTokens) {
+        if (current.length > 0) {
+          batches.push(current);
+        }
+        current = [item];
+        currentChars = textLength;
+        currentTokens = itemTokens;
+        continue;
+      }
+
+      current.push(item);
+      currentChars = nextChars;
+      currentTokens = nextTokens;
+    }
+
+    if (current.length > 0) {
+      batches.push(current);
+    }
+
+    return batches;
+  }
+
+  /**
+   * Estimate token count using a heuristic to reduce batching churn.
+   */
+  private estimateTokens(text: string): number {
+    const latinCount = (text.match(/[A-Za-z0-9]/g) || []).length;
+    const nonLatinCount = Math.max(0, text.length - latinCount);
+    const latinTokens = Math.ceil(latinCount / 4);
+    return Math.max(1, latinTokens + nonLatinCount);
+  }
+
+  /**
+   * Translate a batch with retry and format tolerance.
+   */
+  private async translateBatchWithRetry(
+    requests: TranslationRequest[],
+    model: string
+  ): Promise<string[]> {
+    const retries = Math.max(0, this.config.batchRetryCount || 2);
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await this.translateBatchRequest(requests, model);
+      } catch (error) {
+        lastError = error as Error;
+      }
+    }
+
+    throw lastError || new Error('Batch translation failed');
+  }
+
+  /**
+   * Send a single API request for a batch of texts.
+   */
+  private async translateBatchRequest(
+    requests: TranslationRequest[],
+    model: string
+  ): Promise<string[]> {
+    const abortController = new AbortController();
+    const requestId = `batch:${Date.now()}`;
+    this.activeRequests.set(requestId, abortController);
+
+    if (this.config.maxConcurrency > 0) {
+      await this.waitSlot();
+    }
+
+    try {
+      const prompt = this.buildBatchPrompt(requests);
+      const requestBody: OpenAIRequest = {
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional translator. Translate each item accurately and return a JSON array of translated strings in the same order.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 1.0,
+        max_tokens: 20000
+      };
+
+      const apiUrl = this.normalizeApiUrl(this.config.baseUrl);
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.config.apiKey}`
+        },
+        body: JSON.stringify(requestBody),
+        signal: abortController.signal
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      }
+
+      const data: OpenAIResponse = await response.json();
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('No translation returned from OpenAI API');
+      }
+
+      const content = data.choices[0].message.content.trim();
+      const translations = this.parseBatchTranslations(content, requests.length);
+      if (translations.length !== requests.length) {
+        throw new Error('Batch translation response length mismatch');
+      }
+
+      return translations;
+    } finally {
+      this.activeRequests.delete(requestId);
+      this.releaseSlot();
+    }
+  }
+
+  /**
+   * Build a batch prompt that yields a JSON array response.
+   */
+  private buildBatchPrompt(requests: TranslationRequest[]): string {
+    const sourceLang = requests[0]?.sourceLang || 'auto';
+    const targetLang = requests[0]?.targetLang || 'auto';
+    const items = requests
+      .map((request, index) => `${index + 1}. ${request.text}`)
+      .join('\n');
+
+    return `Translate the following items from ${sourceLang} to ${targetLang}.
+Return ONLY a JSON array of translated strings in the same order.
+
+Items:
+${items}`;
+  }
+
+  /**
+   * Parse model output into a translation list, supporting JSON code blocks.
+   */
+  private parseBatchTranslations(content: string, expectedCount: number): string[] {
+    const extracted = this.extractJsonContent(content);
+    try {
+      const parsed = JSON.parse(extracted);
+      if (Array.isArray(parsed)) {
+        return parsed.map(item => String(item));
+      }
+      if (parsed && Array.isArray(parsed.translations)) {
+        return parsed.translations.map((item: unknown) => String(item));
+      }
+    } catch (error) {
+      throw new Error(`Failed to parse batch translation response: ${String(error)}`);
+    }
+
+    throw new Error(`Invalid batch translation response, expected ${expectedCount} items`);
+  }
+
+  /**
+   * Extract JSON content from a raw response, including ```json blocks.
+   */
+  private extractJsonContent(content: string): string {
+    const fencedMatch = content.match(/```json\s*([\s\S]*?)```/i);
+    if (fencedMatch?.[1]) {
+      return fencedMatch[1].trim();
+    }
+
+    const genericMatch = content.match(/```\s*([\s\S]*?)```/i);
+    if (genericMatch?.[1]) {
+      return genericMatch[1].trim();
+    }
+
+    const arrayStart = content.indexOf('[');
+    const arrayEnd = content.lastIndexOf(']');
+    if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
+      return content.slice(arrayStart, arrayEnd + 1);
+    }
+
+    return content;
+  }
+
+  /**
+   * Normalize OpenAI API URL to chat completions endpoint.
+   */
+  private normalizeApiUrl(baseUrl: string): string {
+    if (baseUrl.endsWith('/chat/completions')) {
+      return baseUrl;
+    }
+    return baseUrl.replace(/\/$/, '') + '/chat/completions';
+  }
+
+  /**
+   * Split a text into fixed-size character chunks to constrain request payloads.
+   */
+  private chunkText(text: string, size: number): string[] {
+    const chunks: string[] = [];
+    for (let i = 0; i < text.length; i += size) {
+      chunks.push(text.slice(i, i + size));
+    }
+    return chunks;
   }
 
   private buildPrompt(text: string, sourceLang: string, targetLang: string): string {

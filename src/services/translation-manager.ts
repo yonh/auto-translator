@@ -12,9 +12,14 @@ const DEFAULT_SETTINGS: PluginSettings = {
   openai: {
     apiKey: '',
     baseUrl: 'https://api.openai.com/v1',
-    models: ['gpt-3.5-turbo'],
+    models: ['gpt-4o-mini'],
     maxConcurrency: 5,
-    timeout: 30000
+    timeout: 30000,
+    chunkSize: 0,
+    batchMaxChars: 20000,
+    batchMaxItems: 100,
+    batchMaxTokens: 10000,
+    batchRetryCount: 2
   },
   cacheEnabled: true,
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
@@ -38,7 +43,14 @@ class BackgroundTranslationManager {
 
   private async loadSettings(): Promise<void> {
     const data = await browser.storage.local.get('settings');
-    this.settings = { ...DEFAULT_SETTINGS, ...data.settings };
+    this.settings = {
+      ...DEFAULT_SETTINGS,
+      ...data.settings,
+      openai: {
+        ...DEFAULT_SETTINGS.openai,
+        ...(data.settings?.openai || {})
+      }
+    };
   }
 
   private async saveSettings(): Promise<void> {
@@ -46,7 +58,14 @@ class BackgroundTranslationManager {
   }
 
   async updateSettings(updates: Partial<PluginSettings>): Promise<void> {
-    this.settings = { ...this.settings, ...updates };
+    this.settings = {
+      ...this.settings,
+      ...updates,
+      openai: {
+        ...this.settings.openai,
+        ...(updates.openai || {})
+      }
+    };
     await this.saveSettings();
 
     if (updates.openai) {

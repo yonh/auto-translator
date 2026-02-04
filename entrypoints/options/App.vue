@@ -103,6 +103,54 @@
             @input="saveSettings"
           />
         </div>
+
+        <div class="control-group">
+          <label for="batchMaxItems">批次最大条目数</label>
+          <input
+            id="batchMaxItems"
+            type="number"
+            v-model.number="settings.openai.batchMaxItems"
+            min="1"
+            step="1"
+            @blur="saveSettings"
+          />
+        </div>
+
+        <div class="control-group">
+          <label for="batchMaxChars">批次最大字符数</label>
+          <input
+            id="batchMaxChars"
+            type="number"
+            v-model.number="settings.openai.batchMaxChars"
+            min="1"
+            step="100"
+            @blur="saveSettings"
+          />
+        </div>
+
+        <div class="control-group">
+          <label for="batchMaxTokens">批次最大 Token 数</label>
+          <input
+            id="batchMaxTokens"
+            type="number"
+            v-model.number="settings.openai.batchMaxTokens"
+            min="1"
+            step="100"
+            @blur="saveSettings"
+          />
+        </div>
+
+        <div class="control-group">
+          <label for="batchRetryCount">批次失败重试次数</label>
+          <input
+            id="batchRetryCount"
+            type="number"
+            v-model.number="settings.openai.batchRetryCount"
+            min="0"
+            step="1"
+            @blur="saveSettings"
+          />
+        </div>
       </section>
 
       <section class="settings-section">
@@ -261,7 +309,12 @@ const settings = ref<PluginSettings>({
     baseUrl: 'https://api.openai.com/v1',
     models: ['gpt-3.5-turbo'],
     maxConcurrency: 5,
-    timeout: 30000
+    timeout: 30000,
+    chunkSize: 0,
+    batchMaxChars: 20000,
+    batchMaxItems: 100,
+    batchMaxTokens: 10000,
+    batchRetryCount: 2
   },
   cacheEnabled: true,
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
@@ -292,7 +345,14 @@ onMounted(async () => {
 async function loadSettings() {
   const result = await browser.storage.local.get('settings');
   if (result.settings) {
-    settings.value = { ...settings.value, ...result.settings };
+    settings.value = {
+      ...settings.value,
+      ...result.settings,
+      openai: {
+        ...settings.value.openai,
+        ...(result.settings.openai || {})
+      }
+    };
     modelsText.value = settings.value.openai.models.join('\n');
     whitelistText.value = settings.value.whitelist.join('\n');
     blacklistText.value = settings.value.blacklist.join('\n');

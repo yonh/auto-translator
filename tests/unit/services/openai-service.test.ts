@@ -6,9 +6,9 @@ vi.stubGlobal('browser', {
   storage: {
     local: {
       get: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockResolvedValue(),
-      remove: vi.fn().mockResolvedValue(),
-      clear: vi.fn().mockResolvedValue()
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      clear: vi.fn().mockResolvedValue(undefined)
     }
   }
 });
@@ -155,6 +155,46 @@ describe('OpenAIService', () => {
       ).rejects.toThrow();
     });
 
+    it('should chunk large text when chunkSize is set', async () => {
+      const service = new OpenAIService({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.openai.com/v1',
+        models: ['gpt-3.5-turbo'],
+        maxConcurrency: 5,
+        timeout: 30000,
+        chunkSize: 5
+      });
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            choices: [{
+              message: { content: '12345' }
+            }],
+            usage: { total_tokens: 10 }
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            choices: [{
+              message: { content: '67890' }
+            }],
+            usage: { total_tokens: 10 }
+          })
+        });
+
+      const result = await service.translate({
+        text: '1234567890',
+        sourceLang: 'en',
+        targetLang: 'zh-CN'
+      });
+
+      expect(result.translatedText).toBe('1234567890');
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
     it('should throw error on invalid response', async () => {
       const service = new OpenAIService({
         apiKey: 'test-key',
@@ -219,7 +259,10 @@ describe('OpenAIService', () => {
         baseUrl: 'https://api.openai.com/v1',
         models: ['gpt-3.5-turbo'],
         maxConcurrency: 5,
-        timeout: 30000
+        timeout: 30000,
+        batchMaxItems: 10,
+        batchMaxChars: 2000,
+        batchRetryCount: 1
       });
 
       const requests = [
@@ -247,6 +290,39 @@ describe('OpenAIService', () => {
         expect(result.translatedText).toBe('Translated text');
       });
       expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('should send a single batch request and parse JSON array response', async () => {
+      const service = new OpenAIService({
+        apiKey: 'test-key',
+        baseUrl: 'https://api.openai.com/v1',
+        models: ['gpt-3.5-turbo'],
+        maxConcurrency: 5,
+        timeout: 30000,
+        batchMaxItems: 10,
+        batchMaxChars: 2000,
+        batchRetryCount: 1
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          choices: [{
+            message: { content: '["你好","世界"]' }
+          }],
+          usage: { total_tokens: 10 }
+        })
+      });
+
+      const results = await service.translateBatch([
+        { text: 'Hello', sourceLang: 'en', targetLang: 'zh-CN' },
+        { text: 'World', sourceLang: 'en', targetLang: 'zh-CN' }
+      ]);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].translatedText).toBe('你好');
+      expect(results[1].translatedText).toBe('世界');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should handle cache hit', async () => {

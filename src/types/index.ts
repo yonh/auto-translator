@@ -16,6 +16,11 @@ export interface OpenAIConfig {
   models: string[];
   maxConcurrency: number;
   timeout: number;
+  chunkSize?: number; // max characters per request chunk
+  batchMaxChars?: number; // max characters per batch translation request
+  batchMaxItems?: number; // max items per batch translation request
+  batchMaxTokens?: number; // max estimated tokens per batch translation request
+  batchRetryCount?: number; // retries for batch request/parse failures
 }
 
 // Translation request

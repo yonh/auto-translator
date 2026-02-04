@@ -163,7 +163,6 @@ export class PageTranslationManagerV2 {
    */
   private async translateUnits(units: TranslatableUnit[]): Promise<void> {
     const openAIService = getOpenAIService(this.settings.openai);
-    const batchSize = Math.min(10, units.length);
     
     // Filter units that need translation
     const unitsToTranslate: TranslatableUnit[] = [];
@@ -181,44 +180,38 @@ export class PageTranslationManagerV2 {
     
     let processedCount = 0;
     
-    for (let i = 0; i < unitsToTranslate.length && !this.cancelled; i += batchSize) {
-      const batch = unitsToTranslate.slice(i, i + batchSize);
-      
-      // Prepare translation requests
-      const requests: TranslationRequest[] = batch.map((unit) => ({
-        text: unit.originalText,
-        sourceLang: unit.sourceLang || 'en',
-        targetLang: this.settings.targetLanguage,
-      }));
-      
-      try {
-        // Batch translate
-        const responses = await openAIService.translateBatch(requests);
-        
-        // Apply translations
-        for (let j = 0; j < batch.length; j++) {
-          const unit = batch[j];
-          const response = responses[j];
-          
-          if (response && response.translatedText) {
-            // Validate translation - skip if it looks like an error message
-            const translation = response.translatedText;
-            if (this.isValidTranslation(translation, unit.originalText)) {
-              this.applier.apply(unit, translation);
-              this.translatedUnits.set(unit.id, unit);
-              // Badge disabled - affects viewing experience
-            } else {
-              console.warn(`[PageTranslationManagerV2] Invalid translation for "${unit.originalText}": "${translation}"`);
-            }
+    if (unitsToTranslate.length === 0) {
+      return;
+    }
+
+    const requests: TranslationRequest[] = unitsToTranslate.map((unit) => ({
+      text: unit.originalText,
+      sourceLang: unit.sourceLang || 'en',
+      targetLang: this.settings.targetLanguage,
+    }));
+
+    try {
+      const responses = await openAIService.translateBatch(requests);
+
+      for (let j = 0; j < unitsToTranslate.length; j++) {
+        const unit = unitsToTranslate[j];
+        const response = responses[j];
+
+        if (response && response.translatedText) {
+          const translation = response.translatedText;
+          if (this.isValidTranslation(translation, unit.originalText)) {
+            this.applier.apply(unit, translation);
+            this.translatedUnits.set(unit.id, unit);
+          } else {
+            console.warn(`[PageTranslationManagerV2] Invalid translation for "${unit.originalText}": "${translation}"`);
           }
         }
-        
-        processedCount += batch.length;
+
+        processedCount += 1;
         this.stateManager.setProgress(processedCount, unitsToTranslate.length);
-      } catch (error) {
-        console.error('[PageTranslationManagerV2] Batch translation error:', error);
-        // Continue with next batch
       }
+    } catch (error) {
+      console.error('[PageTranslationManagerV2] Batch translation error:', error);
     }
   }
   
