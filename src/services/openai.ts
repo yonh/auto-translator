@@ -38,6 +38,35 @@ export class OpenAIService {
     });
   }
 
+  /**
+   * Parses single translation content, tolerant to fenced JSON arrays or wrapped outputs.
+   */
+  private parseSingleTranslationContent(content: string): string {
+    const trimmed = content.trim();
+
+    // Try to extract JSON from fenced blocks or raw content
+    const extracted = this.extractJsonContent(trimmed);
+    try {
+      const parsed = JSON.parse(extracted);
+
+      if (typeof parsed === 'string') {
+        return parsed.trim();
+      }
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.join(' ').trim();
+      }
+
+      if (parsed && Array.isArray((parsed as any).translations)) {
+        return (parsed as any).translations.join(' ').trim();
+      }
+    } catch (_error) {
+      // Fallback to original content below
+    }
+
+    return trimmed;
+  }
+
   updateConfig(config: Partial<OpenAIConfig>): void {
     this.config = { ...this.config, ...config };
     console.log('[OpenAIService] Config updated:', {
@@ -299,7 +328,7 @@ export class OpenAIService {
       throw new Error('No translation returned from OpenAI API');
     }
 
-    return data.choices[0].message.content.trim();
+    return this.parseSingleTranslationContent(data.choices[0].message.content);
   }
 
   /**
