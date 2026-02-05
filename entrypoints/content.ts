@@ -77,6 +77,29 @@ function bindStatusUpdates(): void {
   updateFloatingStatus(pageManager.getStatus());
 }
 
+/**
+ * Controls visibility of the floating control based on auto-translate settings.
+ */
+function updateFloatingVisibility(): void {
+  const shouldShow = Boolean(currentSettings?.enabled && currentSettings?.autoDetect);
+
+  if (!shouldShow) {
+    unsubscribeStatus?.();
+    unsubscribeStatus = null;
+    if (floatingControl?.parentElement) {
+      floatingControl.parentElement.removeChild(floatingControl);
+    }
+    floatingControl = null;
+    statusTextEl = null;
+    actionButton = null;
+    revertButton = null;
+    return;
+  }
+
+  ensureFloatingControl();
+  bindStatusUpdates();
+}
+
 function ensureFloatingControl(): void {
   if (floatingControl) return;
 
@@ -184,8 +207,7 @@ async function initialize(): Promise<void> {
     await pageManager.initialize();
     console.log('[Content Script] Translation manager initialized');
 
-    ensureFloatingControl();
-    bindStatusUpdates();
+    updateFloatingVisibility();
 
     await autoTranslateIfEnabled();
   } catch (error) {
@@ -344,7 +366,7 @@ function handleIncomingMessage(message: any): any {
 
       if (currentSettings && pageManager) {
         pageManager.updateSettings(currentSettings);
-        bindStatusUpdates();
+        updateFloatingVisibility();
       }
 
       return { success: true, id };
