@@ -224,16 +224,15 @@ export class TextNodeExtractor {
    * Checks if there's a significant boundary between two text nodes.
    */
   private hasBoundaryBetween(node1: Text, node2: Text, commonParent: HTMLElement): boolean {
-    // If they share the same parent element, no boundary
-    if (node1.parentElement === node2.parentElement) {
-      return false;
-    }
-    
-    // Check if there's a block element between them
+    // If parents differ, treat as boundary to avoid merging unrelated items
     const parent1 = node1.parentElement;
     const parent2 = node2.parentElement;
     
     if (!parent1 || !parent2) {
+      return true;
+    }
+    
+    if (parent1 !== parent2) {
       return true;
     }
     
