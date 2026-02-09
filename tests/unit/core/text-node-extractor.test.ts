@@ -122,6 +122,24 @@ describe('TextNodeExtractor', () => {
       expect(allText).toContain('here');
       expect(allText).toContain('for more');
     });
+
+    it('should not merge link text across different parents', () => {
+      container.innerHTML = `
+        <div class="nav-dropdown-column-content">
+          <a href="/store/search?sort=bestselling&filter=onsale" class="navbar-item-dropdown-item">On Sale</a>
+          <a href="/store/search?sort=bestselling" class="navbar-item-dropdown-item">Bestselling</a>
+          <a href="/store/search?sort=newest&filter=new" class="navbar-item-dropdown-item">New Releases</a>
+        </div>
+      `;
+
+      const units = extractor.extract(container);
+      const texts = units.map(u => u.originalText);
+
+      expect(texts).toContain('On Sale');
+      expect(texts).toContain('Bestselling');
+      expect(texts).toContain('New Releases');
+      expect(texts.length).toBeGreaterThanOrEqual(3);
+    });
   });
 
   describe('exclusion rules', () => {
