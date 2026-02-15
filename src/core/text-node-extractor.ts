@@ -75,13 +75,15 @@ export class TextNodeExtractor {
     '[contenteditable="true"]',
 
     // Hidden content
-    '[aria-hidden="true"]',
     "[hidden]",
 
     // Common framework-specific exclusions
     ".sr-only",
     ".visually-hidden",
   ];
+
+  /** Exclusions used only for visible-content extraction */
+  private readonly visibleOnlyExcludeSelectors = ['[aria-hidden="true"]'];
 
   /** Block-level elements that define translation boundaries */
   private readonly blockElements = new Set([
@@ -157,7 +159,7 @@ export class TextNodeExtractor {
    */
   private collectTextNodes(root: HTMLElement): Text[] {
     const textNodes: Text[] = [];
-    const excludeSelector = this.getExcludeSelector();
+    const excludeSelector = this.getExcludeSelector(true);
 
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: (node: Text) => {
@@ -194,7 +196,7 @@ export class TextNodeExtractor {
    */
   private collectTextNodesIncludingHidden(root: HTMLElement): Text[] {
     const textNodes: Text[] = [];
-    const excludeSelector = this.getExcludeSelector();
+    const excludeSelector = this.getExcludeSelector(false);
 
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: (node: Text) => {
@@ -413,9 +415,10 @@ export class TextNodeExtractor {
   /**
    * Gets the combined exclude selector string.
    */
-  private getExcludeSelector(): string {
+  private getExcludeSelector(includeVisibleOnly: boolean): string {
     const allSelectors = [
       ...this.excludeSelectors,
+      ...(includeVisibleOnly ? this.visibleOnlyExcludeSelectors : []),
       ...this.config.customExcludeSelectors,
     ];
     return allSelectors.join(",");
@@ -451,7 +454,7 @@ export class TextNodeExtractor {
    * Checks if an element should be excluded from translation.
    */
   shouldExcludeElement(element: HTMLElement): boolean {
-    const excludeSelector = this.getExcludeSelector();
+    const excludeSelector = this.getExcludeSelector(true);
     try {
       return element.matches(excludeSelector);
     } catch {

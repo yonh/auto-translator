@@ -298,6 +298,28 @@ describe('TextNodeExtractor', () => {
     });
   });
 
+  describe('extractIncludingHidden', () => {
+    it('should include text inside aria-hidden containers while extract excludes it', () => {
+      container.innerHTML = `
+        <div aria-hidden="true">
+          <div>In-App Purchase (IAP)</div>
+          <div>Elevate innovation and in-car experiences</div>
+        </div>
+      `;
+
+      const visibleOnlyUnits = extractor.extract(container);
+      const includingHiddenUnits = extractor.extractIncludingHidden(container);
+
+      const visibleTexts = visibleOnlyUnits.map((u) => u.originalText);
+      const hiddenTexts = includingHiddenUnits.map((u) => u.originalText);
+
+      expect(visibleTexts).not.toContain('In-App Purchase (IAP)');
+      expect(visibleTexts).not.toContain('Elevate innovation and in-car experiences');
+      expect(hiddenTexts).toContain('In-App Purchase (IAP)');
+      expect(hiddenTexts).toContain('Elevate innovation and in-car experiences');
+    });
+  });
+
   describe('context detection', () => {
     it('should detect heading context', () => {
       container.innerHTML = '<h1>Heading text</h1>';

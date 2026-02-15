@@ -82,6 +82,8 @@ export class DynamicContentHandler {
       subtree: true,
       characterData: true,
       characterDataOldValue: false,
+      attributes: true,
+      attributeFilter: ["aria-hidden", "style", "class", "hidden"],
     });
 
     // Set up IntersectionObserver if enabled
@@ -154,6 +156,14 @@ export class DynamicContentHandler {
           const parent = target.parentElement;
           if (parent && !this.processedElements.has(parent)) {
             this.pendingNodes.add(parent);
+          }
+        }
+      } else if (mutation.type === "attributes") {
+        const target = mutation.target;
+        if (target.nodeType === Node.ELEMENT_NODE) {
+          const element = target as HTMLElement;
+          if (this.isTranslatableNode(element)) {
+            this.pendingNodes.add(element);
           }
         }
       }
