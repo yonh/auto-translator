@@ -6,6 +6,7 @@ const browser = webext as any;
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN',
   openai: {
     apiKey: '',
@@ -104,6 +105,10 @@ export class SettingsStorage {
     return {
       enabled: Boolean(settings.enabled),
       autoDetect: Boolean(settings.autoDetect),
+      showFloatingStatusControl:
+        settings.showFloatingStatusControl === undefined
+          ? true
+          : Boolean(settings.showFloatingStatusControl),
       targetLanguage: settings.targetLanguage || 'zh-CN',
       openai: {
         apiKey: settings.openai?.apiKey || '',

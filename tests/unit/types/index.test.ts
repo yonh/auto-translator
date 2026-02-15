@@ -115,6 +115,7 @@ describe('Type Definitions', () => {
       const settings: PluginSettings = {
         enabled: true,
         autoDetect: true,
+        showFloatingStatusControl: true,
         targetLanguage: 'zh-CN',
         openai: {
           apiKey: 'sk-test',
@@ -132,6 +133,7 @@ describe('Type Definitions', () => {
 
       expect(settings.enabled).toBe(true);
       expect(settings.autoDetect).toBe(true);
+      expect(settings.showFloatingStatusControl).toBe(true);
       expect(settings.targetLanguage).toBe('zh-CN');
       expect(settings.cacheEnabled).toBe(true);
       expect(settings.showTranslationBadge).toBe(true);

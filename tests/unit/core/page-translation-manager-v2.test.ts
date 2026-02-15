@@ -6,6 +6,7 @@ import { PluginSettings } from '../../../src/types';
 const settings: PluginSettings = {
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN',
   openai: {
     apiKey: '',
@@ -81,5 +82,41 @@ describe('PageTranslationManagerV2 popover reopen scenarios', () => {
     expect(manager.translatedContentKeys.has(reopenedKey)).toBe(false);
 
     popover.remove();
+  });
+
+  it('badge-toggle-adds-badge-when-enabled', () => {
+    const manager = new PageTranslationManagerV2(settings) as any;
+    manager.settings = { ...manager.settings, showTranslationBadge: true };
+
+    const parent = document.createElement('div');
+    const textNode = document.createTextNode('Hello');
+    parent.appendChild(textNode);
+    document.body.appendChild(parent);
+    const unit = createTranslatableUnit([textNode], parent);
+
+    manager.applyTranslationBadgeIfEnabled(unit);
+
+    expect(parent.querySelector('.at-translation-badge')).not.toBeNull();
+    parent.remove();
+  });
+
+  it('badge-toggle-removes-badge-when-disabled', () => {
+    const manager = new PageTranslationManagerV2(settings) as any;
+    manager.settings = { ...manager.settings, showTranslationBadge: true };
+
+    const parent = document.createElement('div');
+    const textNode = document.createTextNode('Hello');
+    parent.appendChild(textNode);
+    document.body.appendChild(parent);
+    const unit = createTranslatableUnit([textNode], parent);
+
+    manager.applyTranslationBadgeIfEnabled(unit);
+    expect(parent.querySelector('.at-translation-badge')).not.toBeNull();
+
+    manager.settings = { ...manager.settings, showTranslationBadge: false };
+    manager.applyTranslationBadgeIfEnabled(unit);
+
+    expect(parent.querySelector('.at-translation-badge')).toBeNull();
+    parent.remove();
   });
 });

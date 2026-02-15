@@ -45,6 +45,17 @@
           </label>
         </div>
 
+        <div class="control-group">
+          <label>
+            <input
+              type="checkbox"
+              v-model="settings.showFloatingStatusControl"
+              @change="saveSettings"
+            />
+            显示页面底部状态栏
+          </label>
+        </div>
+
         <div class="button-group">
           <button
             v-if="status === 'idle'"
@@ -105,6 +116,7 @@ const browser = webext as any;
 interface Settings {
   enabled: boolean;
   autoDetect: boolean;
+  showFloatingStatusControl: boolean;
   targetLanguage: string;
 }
 
@@ -122,6 +134,7 @@ const languages = [
 const settings = ref<Settings>({
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN'
 });
 
@@ -198,6 +211,8 @@ async function loadSettings() {
       settings.value = {
         enabled: savedSettings.enabled ?? true,
         autoDetect: savedSettings.autoDetect ?? true,
+        showFloatingStatusControl:
+          savedSettings.showFloatingStatusControl ?? true,
         targetLanguage: savedSettings.targetLanguage ?? 'zh-CN'
       };
       console.log('[Popup] Settings loaded from storage:', settings.value);
@@ -249,6 +264,7 @@ async function saveSettings() {
       ...currentSettings,
       enabled: settings.value.enabled,
       autoDetect: settings.value.autoDetect,
+      showFloatingStatusControl: settings.value.showFloatingStatusControl,
       targetLanguage: settings.value.targetLanguage
     };
 

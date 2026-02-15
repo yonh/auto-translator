@@ -5,6 +5,7 @@ import { PluginSettings } from '@/types';
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN',
   openai: {
     apiKey: '',

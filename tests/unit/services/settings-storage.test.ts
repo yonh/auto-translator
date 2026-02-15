@@ -32,6 +32,7 @@ describe('SettingsStorage', () => {
     const settings = await storage.load();
 
     expect(settings.enabled).toBe(true);
+    expect(settings.showFloatingStatusControl).toBe(true);
     expect(settings.targetLanguage).toBe('zh-CN');
     expect(settings.openai.models).toEqual(['gpt-3.5-turbo']);
   });
@@ -41,6 +42,7 @@ describe('SettingsStorage', () => {
       settings: {
         enabled: false,
         autoDetect: true,
+        showFloatingStatusControl: false,
         targetLanguage: 'ja',
         openai: {
           apiKey: 'k',
@@ -59,8 +61,9 @@ describe('SettingsStorage', () => {
     });
 
     const settings = await storage.load();
-    expect(settings.enabled).toBe(false);
-    expect(settings.targetLanguage).toBe('ja');
+      expect(settings.enabled).toBe(false);
+      expect(settings.showFloatingStatusControl).toBe(false);
+      expect(settings.targetLanguage).toBe('ja');
     expect(settings.openai.models).toEqual(['gpt-4']);
     expect(settings.debugLogging).toBe(true);
   });
@@ -69,6 +72,7 @@ describe('SettingsStorage', () => {
     await storage.save({
       enabled: true,
       autoDetect: true,
+      showFloatingStatusControl: true,
       targetLanguage: 'zh-CN',
       openai: {
         apiKey: '',
@@ -93,6 +97,7 @@ describe('SettingsStorage', () => {
       settings: {
         enabled: true,
         autoDetect: true,
+        showFloatingStatusControl: true,
         targetLanguage: 'zh-CN',
         openai: {
           apiKey: '',
@@ -131,6 +136,7 @@ describe('SettingsStorage', () => {
       settings: {
         enabled: true,
         autoDetect: true,
+        showFloatingStatusControl: true,
         targetLanguage: 'fr',
         openai: {
           apiKey: '',
@@ -154,6 +160,7 @@ describe('SettingsStorage', () => {
   it('getDefaultSettings returns baseline config', () => {
     const defaults = storage.getDefaultSettings();
     expect(defaults.enabled).toBe(true);
+    expect(defaults.showFloatingStatusControl).toBe(true);
     expect(defaults.targetLanguage).toBe('zh-CN');
   });
 });

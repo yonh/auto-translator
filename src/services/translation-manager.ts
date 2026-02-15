@@ -8,6 +8,7 @@ const browser = webext as any;
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN',
   openai: {
     apiKey: '',

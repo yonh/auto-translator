@@ -15,6 +15,7 @@ let isTranslated: boolean = false;
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: "zh-CN",
   openai: {
     apiKey: "",
@@ -88,7 +89,7 @@ function bindStatusUpdates(): void {
  */
 function updateFloatingVisibility(): void {
   const shouldShow = Boolean(
-    currentSettings?.enabled && currentSettings?.autoDetect,
+    currentSettings?.enabled && currentSettings?.showFloatingStatusControl,
   );
 
   if (!shouldShow) {

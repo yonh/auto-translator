@@ -235,6 +235,17 @@
           <label>
             <input
               type="checkbox"
+              v-model="settings.showFloatingStatusControl"
+              @change="saveSettings"
+            />
+            显示页面底部翻译状态栏
+          </label>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <input
+              type="checkbox"
               v-model="settings.debugLogging"
               @change="saveSettings"
             />
@@ -317,6 +328,7 @@ const languages = [
 const settings = ref<PluginSettings>({
   enabled: true,
   autoDetect: true,
+  showFloatingStatusControl: true,
   targetLanguage: 'zh-CN',
   openai: {
     apiKey: '',

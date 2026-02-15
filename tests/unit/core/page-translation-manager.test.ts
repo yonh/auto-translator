@@ -29,6 +29,7 @@ describe('PageTranslationManager', () => {
     mockSettings = {
       enabled: true,
       autoDetect: true,
+      showFloatingStatusControl: true,
       targetLanguage: 'zh-CN',
       openai: {
         apiKey: 'test-key',

@@ -45,6 +45,7 @@ export interface TranslationResponse {
 export interface PluginSettings {
   enabled: boolean;
   autoDetect: boolean;
+  showFloatingStatusControl: boolean;
   targetLanguage: string;
   openai: OpenAIConfig;
   cacheEnabled: boolean;
