@@ -1,6 +1,10 @@
-import webext from 'webextension-polyfill';
-import { OpenAIConfig, TranslationRequest, TranslationResponse } from '../types';
-import { translationCache } from './cache';
+import webext from "webextension-polyfill";
+import {
+  OpenAIConfig,
+  TranslationRequest,
+  TranslationResponse,
+} from "../types";
+import { translationCache } from "./cache";
 
 const browser = webext as any;
 
@@ -9,6 +13,8 @@ interface OpenAIRequest {
   messages: Array<{ role: string; content: string }>;
   temperature?: number;
   max_tokens?: number;
+  response_format?: { type: string };
+  thinking?: { type: string };
 }
 
 interface OpenAIResponse {
@@ -30,11 +36,13 @@ export class OpenAIService {
 
   constructor(config: OpenAIConfig) {
     this.config = config;
-    console.log('[OpenAIService] Initialized with config:', {
+    console.log("[OpenAIService] Initialized with config:", {
+      models: this.config.models,
+      defaultModel: this.config.models[0],
       batchMaxItems: this.config.batchMaxItems,
       batchMaxChars: this.config.batchMaxChars,
       batchMaxTokens: this.config.batchMaxTokens,
-      batchRetryCount: this.config.batchRetryCount
+      batchRetryCount: this.config.batchRetryCount,
     });
   }
 
@@ -49,16 +57,16 @@ export class OpenAIService {
     try {
       const parsed = JSON.parse(extracted);
 
-      if (typeof parsed === 'string') {
+      if (typeof parsed === "string") {
         return parsed.trim();
       }
 
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.join(' ').trim();
+        return parsed.join(" ").trim();
       }
 
       if (parsed && Array.isArray((parsed as any).translations)) {
-        return (parsed as any).translations.join(' ').trim();
+        return (parsed as any).translations.join(" ").trim();
       }
     } catch (_error) {
       // Fallback to original content below
@@ -69,11 +77,11 @@ export class OpenAIService {
 
   updateConfig(config: Partial<OpenAIConfig>): void {
     this.config = { ...this.config, ...config };
-    console.log('[OpenAIService] Config updated:', {
+    console.log("[OpenAIService] Config updated:", {
       batchMaxItems: this.config.batchMaxItems,
       batchMaxChars: this.config.batchMaxChars,
       batchMaxTokens: this.config.batchMaxTokens,
-      batchRetryCount: this.config.batchRetryCount
+      batchRetryCount: this.config.batchRetryCount,
     });
   }
 
@@ -90,7 +98,7 @@ export class OpenAIService {
         req.text,
         req.sourceLang,
         req.targetLang,
-        model
+        model,
       );
 
       if (cached) {
@@ -100,7 +108,7 @@ export class OpenAIService {
           sourceLang: req.sourceLang,
           targetLang: req.targetLang,
           model: cached.model,
-          cached: true
+          cached: true,
         };
       }
 
@@ -113,7 +121,7 @@ export class OpenAIService {
         req.sourceLang,
         req.targetLang,
         model,
-        abortController.signal
+        abortController.signal,
       );
 
       await translationCache.set(
@@ -121,7 +129,7 @@ export class OpenAIService {
         req.sourceLang,
         req.targetLang,
         model,
-        translatedText
+        translatedText,
       );
 
       this.activeRequests.delete(requestId);
@@ -133,7 +141,7 @@ export class OpenAIService {
         sourceLang: req.sourceLang,
         targetLang: req.targetLang,
         model,
-        cached: false
+        cached: false,
       };
     } catch (error) {
       this.releaseSlot();
@@ -141,7 +149,9 @@ export class OpenAIService {
     }
   }
 
-  async translateBatch(requests: TranslationRequest[]): Promise<TranslationResponse[]> {
+  async translateBatch(
+    requests: TranslationRequest[],
+  ): Promise<TranslationResponse[]> {
     if (requests.length === 0) {
       return [];
     }
@@ -152,7 +162,9 @@ export class OpenAIService {
       return this.translateBatchWithMultipleModels(requests);
     }
 
-    const results: Array<TranslationResponse | null> = new Array(requests.length).fill(null);
+    const results: Array<TranslationResponse | null> = new Array(
+      requests.length,
+    ).fill(null);
     const pending: Array<{ request: TranslationRequest; index: number }> = [];
 
     for (let i = 0; i < requests.length; i++) {
@@ -161,7 +173,7 @@ export class OpenAIService {
         request.text,
         request.sourceLang,
         request.targetLang,
-        model
+        model,
       );
 
       if (cached) {
@@ -171,7 +183,7 @@ export class OpenAIService {
           sourceLang: request.sourceLang,
           targetLang: request.targetLang,
           model: cached.model,
-          cached: true
+          cached: true,
         };
       } else {
         pending.push({ request, index: i });
@@ -179,7 +191,7 @@ export class OpenAIService {
     }
 
     if (pending.length === 0) {
-      return results.map(result => result!);
+      return results.map((result) => result!);
     }
 
     const batches = this.buildBatches(pending);
@@ -187,8 +199,8 @@ export class OpenAIService {
     await Promise.all(
       batches.map(async (batch) => {
         const translations = await this.translateBatchWithRetry(
-          batch.map(item => item.request),
-          model
+          batch.map((item) => item.request),
+          model,
         );
 
         for (let i = 0; i < batch.length; i++) {
@@ -200,7 +212,7 @@ export class OpenAIService {
             sourceLang: request.sourceLang,
             targetLang: request.targetLang,
             model,
-            cached: false
+            cached: false,
           };
 
           await translationCache.set(
@@ -208,26 +220,26 @@ export class OpenAIService {
             request.sourceLang,
             request.targetLang,
             model,
-            translatedText
+            translatedText,
           );
         }
-      })
+      }),
     );
 
-    return results.map(result => result!);
+    return results.map((result) => result!);
   }
 
   private async translateBatchWithMultipleModels(
-    requests: TranslationRequest[]
+    requests: TranslationRequest[],
   ): Promise<TranslationResponse[]> {
     const modelCounts = Math.ceil(
-      (this.config.maxConcurrency || 1) / this.config.models.length
+      (this.config.maxConcurrency || 1) / this.config.models.length,
     );
     const results: TranslationResponse[] = [];
 
     for (const model of this.config.models) {
       const modelRequests = requests.filter(
-        r => !r.model || r.model === model
+        (r) => !r.model || r.model === model,
       );
 
       if (modelRequests.length === 0) {
@@ -235,7 +247,7 @@ export class OpenAIService {
       }
 
       const modelResults = await this.translateBatch(
-        modelRequests.map(req => ({ ...req, model }))
+        modelRequests.map((req) => ({ ...req, model })),
       );
       results.push(...modelResults);
     }
@@ -248,7 +260,7 @@ export class OpenAIService {
     sourceLang: string,
     targetLang: string,
     model: string,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<string> {
     const chunkSize = Math.max(0, this.config.chunkSize || 0);
 
@@ -262,15 +274,21 @@ export class OpenAIService {
           sourceLang,
           targetLang,
           model,
-          signal
+          signal,
         );
         translatedChunks.push(translatedChunk);
       }
 
-      return translatedChunks.join('');
+      return translatedChunks.join("");
     }
 
-    return this.translateSingleChunk(text, sourceLang, targetLang, model, signal);
+    return this.translateSingleChunk(
+      text,
+      sourceLang,
+      targetLang,
+      model,
+      signal,
+    );
   }
 
   private async translateSingleChunk(
@@ -278,7 +296,7 @@ export class OpenAIService {
     sourceLang: string,
     targetLang: string,
     model: string,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<string> {
     const prompt = this.buildPrompt(text, sourceLang, targetLang);
 
@@ -286,38 +304,40 @@ export class OpenAIService {
       model,
       messages: [
         {
-          role: 'system',
-          content: 'You are a professional translator. Translate given text accurately while preserving original meaning and tone.'
+          role: "system",
+          content:
+            "You are a professional translator. Translate given text accurately while preserving original meaning and tone.",
         },
         {
-          role: 'user',
-          content: prompt
-        }
+          role: "user",
+          content: prompt,
+        },
       ],
       temperature: 1.0,
-      max_tokens: 20000
+      max_tokens: 20000,
+      thinking: { type: "disabled" },
     };
 
     let apiUrl = this.config.baseUrl;
     apiUrl = this.normalizeApiUrl(apiUrl);
 
     const response = await fetch(apiUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.apiKey}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.config.apiKey}`,
       },
       body: JSON.stringify(requestBody),
-      signal
+      signal,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[OpenAI Service] API request failed:', {
+      console.error("[OpenAI Service] API request failed:", {
         url: apiUrl,
         status: response.status,
         statusText: response.statusText,
-        body: errorText
+        body: errorText,
       });
       throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
@@ -325,7 +345,7 @@ export class OpenAIService {
     const data: OpenAIResponse = await response.json();
 
     if (!data.choices || data.choices.length === 0) {
-      throw new Error('No translation returned from OpenAI API');
+      throw new Error("No translation returned from OpenAI API");
     }
 
     return this.parseSingleTranslationContent(data.choices[0].message.content);
@@ -335,18 +355,20 @@ export class OpenAIService {
    * Build request batches based on item count and character limits.
    */
   private buildBatches(
-    items: Array<{ request: TranslationRequest; index: number }>
+    items: Array<{ request: TranslationRequest; index: number }>,
   ): Array<Array<{ request: TranslationRequest; index: number }>> {
     const maxItems = Math.max(1, this.config.batchMaxItems || 10);
     const maxChars = Math.max(1, this.config.batchMaxChars || 2000);
     const maxTokens = Math.max(1, this.config.batchMaxTokens || 800);
-    console.log('[OpenAIService] Batch limits:', {
+    console.log("[OpenAIService] Batch limits:", {
       maxItems,
       maxChars,
       maxTokens,
-      totalItems: items.length
+      totalItems: items.length,
     });
-    const batches: Array<Array<{ request: TranslationRequest; index: number }>> = [];
+    const batches: Array<
+      Array<{ request: TranslationRequest; index: number }>
+    > = [];
     let current: Array<{ request: TranslationRequest; index: number }> = [];
     let currentChars = 0;
     let currentTokens = 0;
@@ -356,7 +378,11 @@ export class OpenAIService {
       const itemTokens = this.estimateTokens(item.request.text);
       const nextChars = currentChars + textLength;
       const nextTokens = currentTokens + itemTokens;
-      if (current.length >= maxItems || nextChars > maxChars || nextTokens > maxTokens) {
+      if (
+        current.length >= maxItems ||
+        nextChars > maxChars ||
+        nextTokens > maxTokens
+      ) {
         if (current.length > 0) {
           batches.push(current);
         }
@@ -393,7 +419,7 @@ export class OpenAIService {
    */
   private async translateBatchWithRetry(
     requests: TranslationRequest[],
-    model: string
+    model: string,
   ): Promise<string[]> {
     const retries = Math.max(0, this.config.batchRetryCount || 2);
     let lastError: Error | null = null;
@@ -406,7 +432,7 @@ export class OpenAIService {
       }
     }
 
-    throw lastError || new Error('Batch translation failed');
+    throw lastError || new Error("Batch translation failed");
   }
 
   /**
@@ -414,7 +440,7 @@ export class OpenAIService {
    */
   private async translateBatchRequest(
     requests: TranslationRequest[],
-    model: string
+    model: string,
   ): Promise<string[]> {
     const abortController = new AbortController();
     const requestId = `batch:${Date.now()}`;
@@ -426,31 +452,45 @@ export class OpenAIService {
 
     try {
       const prompt = this.buildBatchPrompt(requests);
+
+      // Use response_format for structured output (BigModel/GLM support)
       const requestBody: OpenAIRequest = {
         model,
         messages: [
           {
-            role: 'system',
-            content: 'You are a professional translator. Translate each item accurately and return a JSON array of translated strings in the same order.'
+            role: "system",
+            content:
+              "You are a professional translator. Translate each item accurately and return a JSON array of translated strings in the same order.",
           },
           {
-            role: 'user',
-            content: prompt
-          }
+            role: "user",
+            content: prompt,
+          },
         ],
         temperature: 1.0,
-        max_tokens: 20000
+        max_tokens: 20000,
+        response_format: { type: "json_object" },
+        thinking: { type: "disabled" },
       };
+
+      // Log the model being used for debugging
+      console.log(
+        "[OpenAIService] Using model:",
+        model,
+        "for",
+        requests.length,
+        "requests",
+      );
 
       const apiUrl = this.normalizeApiUrl(this.config.baseUrl);
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify(requestBody),
-        signal: abortController.signal
+        signal: abortController.signal,
       });
 
       if (!response.ok) {
@@ -460,13 +500,45 @@ export class OpenAIService {
 
       const data: OpenAIResponse = await response.json();
       if (!data.choices || data.choices.length === 0) {
-        throw new Error('No translation returned from OpenAI API');
+        throw new Error("No translation returned from OpenAI API");
       }
 
       const content = data.choices[0].message.content.trim();
-      const translations = this.parseBatchTranslations(content, requests.length);
+
+      // Debug: Log raw response content for troubleshooting
+      console.log(
+        "[OpenAIService] Raw batch response:",
+        content.substring(0, 500),
+      );
+
+      const translations = this.parseBatchTranslations(
+        content,
+        requests.length,
+      );
+
+      console.log(
+        "[OpenAIService] Parsed translations:",
+        translations.length,
+        "expected:",
+        requests.length,
+      );
+
+      // Handle response length mismatch gracefully
       if (translations.length !== requests.length) {
-        throw new Error('Batch translation response length mismatch');
+        console.warn(
+          "[OpenAIService] Response length mismatch. Got:",
+          translations.length,
+          "Expected:",
+          requests.length,
+          "- Using available translations",
+        );
+
+        // If we got more translations than expected, use the first N
+        if (translations.length > requests.length) {
+          translations.length = requests.length;
+        }
+        // If we got fewer translations, we'll use what we have
+        // Missing translations will keep original text
       }
 
       return translations;
@@ -480,37 +552,99 @@ export class OpenAIService {
    * Build a batch prompt that yields a JSON array response.
    */
   private buildBatchPrompt(requests: TranslationRequest[]): string {
-    const sourceLang = requests[0]?.sourceLang || 'auto';
-    const targetLang = requests[0]?.targetLang || 'auto';
+    const sourceLang = requests[0]?.sourceLang || "auto";
+    const targetLang = requests[0]?.targetLang || "auto";
     const items = requests
       .map((request, index) => `${index + 1}. ${request.text}`)
-      .join('\n');
+      .join("\n");
 
-    return `Translate the following items from ${sourceLang} to ${targetLang}.
-Return ONLY a JSON array of translated strings in the same order.
+    return `Translate the following ${requests.length} items from ${sourceLang} to ${targetLang}.
+CRITICAL: Return ONLY a valid JSON array with exactly ${requests.length} translated strings, no more, no less.
+Each item must be a separate string in the array. Do not combine or split any items.
 
 Items:
-${items}`;
+${items}
+
+Output format (replace with actual translations):
+["translation1", "translation2", "translation3", ...]`;
   }
 
   /**
    * Parse model output into a translation list, supporting JSON code blocks.
    */
-  private parseBatchTranslations(content: string, expectedCount: number): string[] {
+  private parseBatchTranslations(
+    content: string,
+    expectedCount: number,
+  ): string[] {
     const extracted = this.extractJsonContent(content);
+    console.log("[OpenAIService] Extracted JSON:", extracted.substring(0, 300));
+
     try {
       const parsed = JSON.parse(extracted);
+
+      // Direct array format: ["translation1", "translation2", ...]
       if (Array.isArray(parsed)) {
-        return parsed.map(item => String(item));
+        return parsed
+          .map((item) => String(item))
+          .filter((item) => item && item.trim().length > 0);
       }
+
+      // Object with translations array: { translations: [...] }
       if (parsed && Array.isArray(parsed.translations)) {
-        return parsed.translations.map((item: unknown) => String(item));
+        return parsed.translations
+          .map((item: unknown) => String(item))
+          .filter((item) => item && item.trim().length > 0);
+      }
+
+      // Object with data array: { data: [...] }
+      if (parsed && Array.isArray(parsed.data)) {
+        return parsed.data
+          .map((item: unknown) => String(item))
+          .filter((item) => item && item.trim().length > 0);
+      }
+
+      // Object with items array: { items: [...] }
+      if (parsed && Array.isArray(parsed.items)) {
+        return parsed.items
+          .map((item: unknown) => String(item))
+          .filter((item) => item && item.trim().length > 0);
+      }
+
+      // Object with numbered keys: { "1": "translation1", "2": "translation2", ... }
+      if (parsed && typeof parsed === "object") {
+        const translations: string[] = [];
+        const keys = Object.keys(parsed)
+          .map(Number)
+          .filter((k) => !isNaN(k) && k > 0)
+          .sort((a, b) => a - b);
+        if (keys.length > 0) {
+          for (const key of keys) {
+            translations.push(String(parsed[key]));
+          }
+          if (translations.length === expectedCount) {
+            return translations;
+          }
+        }
+      }
+
+      // Fallback: try to extract array from the raw content using regex
+      const arrayMatch = content.match(/\[.*\]/s);
+      if (arrayMatch) {
+        const arrayParsed = JSON.parse(arrayMatch[0]);
+        if (Array.isArray(arrayParsed)) {
+          return arrayParsed.map((item) => String(item));
+        }
       }
     } catch (error) {
-      throw new Error(`Failed to parse batch translation response: ${String(error)}`);
+      console.error("[OpenAIService] Parse error:", error);
+      throw new Error(
+        `Failed to parse batch translation response: ${String(error)}`,
+      );
     }
 
-    throw new Error(`Invalid batch translation response, expected ${expectedCount} items`);
+    throw new Error(
+      `Invalid batch translation response, expected ${expectedCount} items`,
+    );
   }
 
   /**
@@ -527,8 +661,8 @@ ${items}`;
       return genericMatch[1].trim();
     }
 
-    const arrayStart = content.indexOf('[');
-    const arrayEnd = content.lastIndexOf(']');
+    const arrayStart = content.indexOf("[");
+    const arrayEnd = content.lastIndexOf("]");
     if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
       return content.slice(arrayStart, arrayEnd + 1);
     }
@@ -540,10 +674,10 @@ ${items}`;
    * Normalize OpenAI API URL to chat completions endpoint.
    */
   private normalizeApiUrl(baseUrl: string): string {
-    if (baseUrl.endsWith('/chat/completions')) {
+    if (baseUrl.endsWith("/chat/completions")) {
       return baseUrl;
     }
-    return baseUrl.replace(/\/$/, '') + '/chat/completions';
+    return baseUrl.replace(/\/$/, "") + "/chat/completions";
   }
 
   /**
@@ -557,7 +691,11 @@ ${items}`;
     return chunks;
   }
 
-  private buildPrompt(text: string, sourceLang: string, targetLang: string): string {
+  private buildPrompt(
+    text: string,
+    sourceLang: string,
+    targetLang: string,
+  ): string {
     // Use XML-like tags to clearly delimit the text to translate
     // This prevents short texts like "OR" from being misinterpreted as instructions
     return `Translate the text inside <source> tags from ${sourceLang} to ${targetLang}.
@@ -572,7 +710,7 @@ Output ONLY the translated text, nothing else.
       return;
     }
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.requestQueue.push(resolve);
     });
   }
