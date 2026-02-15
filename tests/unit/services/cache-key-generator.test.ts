@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cacheKeyGenerator } from '../../src/services/cache-key-generator';
+import { cacheKeyGenerator } from '../../../src/services/cache-key-generator';
 
 describe('Cache Key Generator', () => {
   describe('generate', () => {
@@ -39,14 +39,14 @@ describe('Cache Key Generator', () => {
       const hash = cacheKeyGenerator.generate('Hello!@#$', 'en', 'zh-CN', 'gpt-3.5-turbo');
 
       expect(hash).toBeDefined();
-      expect(typeof hash).toBe('number');
+      expect(typeof hash).toBe('string');
     });
 
     it('should handle empty text', () => {
       const hash = cacheKeyGenerator.generate('', 'en', 'zh-CN', 'gpt-3.5-turbo');
 
       expect(hash).toBeDefined();
-      expect(typeof hash).toBe('number');
+      expect(typeof hash).toBe('string');
     });
 
     it('should handle long text', () => {

@@ -69,7 +69,7 @@ describe('DOMMutationObserver', () => {
       expect(mockCallback).not.toHaveBeenCalled();
     });
 
-    it.skip('should allow resume after pause - jsdom limitation'), () => {
+    it.skip('should allow resume after pause - jsdom limitation', () => {
       observer = new DOMMutationObserver();
       observer.start(mockRoot, mockCallback);
       observer.pause();
@@ -95,7 +95,7 @@ describe('DOMMutationObserver', () => {
   });
 
   describe('setDebounceDelay', () => {
-    it.skip('should update debounce delay - jsdom limitation'), () => {
+    it.skip('should update debounce delay - jsdom limitation', () => {
       observer = new DOMMutationObserver();
       observer.setDebounceDelay(500);
 
@@ -110,7 +110,7 @@ describe('DOMMutationObserver', () => {
       expect(mockCallback).toHaveBeenCalled();
     });
 
-    it.skip('should handle zero delay - jsdom limitation'), () => {
+    it.skip('should handle zero delay - jsdom limitation', () => {
       observer = new DOMMutationObserver();
       observer.setDebounceDelay(0);
 

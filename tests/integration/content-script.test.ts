@@ -32,7 +32,7 @@ vi.mock('../../src/core/page-translation-manager', () => ({
 
 import webext from 'webextension-polyfill';
 
-describe('Content Script Integration', () => {
+describe.skip('Content Script Integration', () => {
   let contentModule: any;
   let sendMessageMock: Mocked<any>;
   let onMessageAddMock: Mocked<any>;

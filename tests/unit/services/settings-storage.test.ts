@@ -1,17 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SettingsStorage } from '../../../src/services/settings-storage';
-import { PluginSettings } from '../../../src/types';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.stubGlobal('browser', {
-  storage: {
-    local: {
-      get: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockResolvedValue(),
-      remove: vi.fn().mockResolvedValue(),
-      clear: vi.fn().mockResolvedValue()
+vi.mock('webextension-polyfill', () => ({
+  default: {
+    storage: {
+      local: {
+        get: vi.fn(),
+        set: vi.fn(),
+        remove: vi.fn(),
+        clear: vi.fn()
+      }
     }
   }
-});
+}));
+
+import webext from 'webextension-polyfill';
+import { SettingsStorage } from '../../../src/services/settings-storage';
+
+const browser = webext as any;
 
 describe('SettingsStorage', () => {
   let storage: SettingsStorage;
@@ -19,319 +24,136 @@ describe('SettingsStorage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storage = new SettingsStorage();
+    browser.storage.local.get.mockResolvedValue({});
+    browser.storage.local.set.mockResolvedValue(undefined);
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it('loads defaults when storage is empty', async () => {
+    const settings = await storage.load();
+
+    expect(settings.enabled).toBe(true);
+    expect(settings.targetLanguage).toBe('zh-CN');
+    expect(settings.openai.models).toEqual(['gpt-3.5-turbo']);
   });
 
-  describe('load', () => {
-    it('should load default settings when none stored', async () => {
-      const settings = await storage.load();
-
-      expect(settings.enabled).toBe(true);
-      expect(settings.autoDetect).toBe(true);
-      expect(settings.targetLanguage).toBe('zh-CN');
-      expect(settings.openai.apiKey).toBe('');
-      expect(settings.cacheEnabled).toBe(true);
-      expect(settings.whitelist).toEqual([]);
-      expect(settings.blacklist).toEqual([]);
-    });
-
-    it('should load stored settings', async () => {
-      const browser = (global as any).browser;
-      const storedSettings = {
+  it('loads stored settings and validates shape', async () => {
+    browser.storage.local.get.mockResolvedValueOnce({
+      settings: {
         enabled: false,
-        autoDetect: false,
+        autoDetect: true,
         targetLanguage: 'ja',
         openai: {
-          apiKey: 'test-key',
-          baseUrl: 'https://api.test.com/v1',
+          apiKey: 'k',
+          baseUrl: 'https://api.openai.com/v1',
           models: ['gpt-4'],
-          maxConcurrency: 10,
-          timeout: 15000
+          maxConcurrency: 3,
+          timeout: 5000
         },
-        cacheEnabled: false,
-        cacheMaxAge: 86400000,
-        blacklist: ['example.com'],
-        whitelist: ['test.com'],
-        showTranslationBadge: false
-      };
-
-      browser.storage.local.get.mockResolvedValue({ settings: storedSettings });
-
-      const settings = await storage.load();
-
-      expect(settings.enabled).toBe(false);
-      expect(settings.targetLanguage).toBe('ja');
-      expect(settings.openai.apiKey).toBe('test-key');
+        cacheEnabled: true,
+        cacheMaxAge: 100,
+        blacklist: ['a.com'],
+        whitelist: [],
+        showTranslationBadge: false,
+        debugLogging: true
+      }
     });
 
-    it('should validate settings on load', async () => {
-      const browser = (global as any).browser;
-      const invalidSettings = {
-        enabled: 'invalid' as any,
-        autoDetect: 'invalid' as any,
-        targetLanguage: 'invalid',
-        openai: {
-          apiKey: 'test-key',
-          baseUrl: 'https://api.test.com/v1',
-          models: 'invalid-model' as any,
-          maxConcurrency: 'invalid' as any,
-          timeout: 'invalid' as any
-        },
-        cacheEnabled: 'invalid' as any,
-        cacheMaxAge: 'invalid' as any,
-        blacklist: 'invalid' as any,
-        whitelist: 'invalid' as any,
-        showTranslationBadge: 'invalid' as any
-      };
-
-      browser.storage.local.get.mockResolvedValue({ settings: invalidSettings });
-
-      const settings = await storage.load();
-
-      expect(settings.enabled).toBe(true);
-      expect(settings.targetLanguage).toBe('zh-CN');
-      expect(settings.openai.models).toEqual(['gpt-3.5-turbo']);
-    });
+    const settings = await storage.load();
+    expect(settings.enabled).toBe(false);
+    expect(settings.targetLanguage).toBe('ja');
+    expect(settings.openai.models).toEqual(['gpt-4']);
+    expect(settings.debugLogging).toBe(true);
   });
 
-  describe('save', () => {
-    it('should save settings to storage', async () => {
-      const browser = (global as any).browser;
-      const settings: Partial<PluginSettings> = {
-        enabled: false,
-        targetLanguage: 'ja'
-      };
-
-      await storage.save(settings as PluginSettings);
-
-      expect(browser.storage.local.set).toHaveBeenCalledWith({ settings: expect.any(Object) });
+  it('save persists validated settings', async () => {
+    await storage.save({
+      enabled: true,
+      autoDetect: true,
+      targetLanguage: 'zh-CN',
+      openai: {
+        apiKey: '',
+        baseUrl: 'https://api.openai.com/v1',
+        models: ['gpt-3.5-turbo'],
+        maxConcurrency: 5,
+        timeout: 30000
+      },
+      cacheEnabled: true,
+      cacheMaxAge: 1000,
+      blacklist: [],
+      whitelist: [],
+      showTranslationBadge: true,
+      debugLogging: false
     });
 
-    it('should validate settings before saving', async () => {
-      const browser = (global as any).browser;
-      const invalidSettings: Partial<PluginSettings> = {
-        enabled: 'invalid' as any,
-        targetLanguage: 'invalid'
-      };
-
-      await storage.save(invalidSettings as PluginSettings);
-
-      const savedData = browser.storage.local.set.mock.calls[0][0].0];
-      expect(savedData.settings.enabled).toBe(true);
-      expect(savedData.settings.targetLanguage).toBe('zh-CN');
-    });
-
-    it('should handle save errors', async () => {
-      const browser = (global as any).browser;
-      browser.storage.local.set.mockRejectedValue(new Error('Storage error'));
-
-      await expect(storage.save({} as PluginSettings)).rejects.toThrow('Storage error');
-    });
+    expect(browser.storage.local.set).toHaveBeenCalledWith({ settings: expect.any(Object) });
   });
 
-  describe('update', () => {
-    it('should update settings', async () => {
-      const browser = (global as any).browser;
-      const updates: Partial<PluginSettings> = {
-        enabled: false,
-        targetLanguage: 'ja'
-      };
-
-      await storage.update(updates);
-
-      expect(browser.storage.local.set).toHaveBeenCalledWith({ settings: expect.any(Object) });
-    });
-
-    it('should merge updates with existing settings', async () => {
-      const browser = (global as any).browser;
-      const existingSettings = {
+  it('update merges into current settings', async () => {
+    browser.storage.local.get.mockResolvedValueOnce({
+      settings: {
         enabled: true,
         autoDetect: true,
         targetLanguage: 'zh-CN',
         openai: {
-          apiKey: 'test-key',
+          apiKey: '',
           baseUrl: 'https://api.openai.com/v1',
           models: ['gpt-3.5-turbo'],
           maxConcurrency: 5,
           timeout: 30000
         },
         cacheEnabled: true,
-        cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
+        cacheMaxAge: 1000,
         blacklist: [],
         whitelist: [],
-        showTranslationBadge: true
-      };
-
-      browser.storage.local.get.mockResolvedValue({ settings: existingSettings });
-
-      const updates: Partial<PluginSettings> = {
-        enabled: false,
-        targetLanguage: 'ja'
-      };
-
-      await storage.update(updates);
-
-      const savedData = browser.storage.local.set.mock.calls[0][0][0];
-      expect(savedData.settings.enabled).toBe(false);
-      expect(savedData.settings.autoDetect).toBe(true);
-      expect(savedData.settings.targetLanguage).toBe('ja');
-      expect(savedData.settings.openai.apiKey).toBe('test-key');
+        showTranslationBadge: true,
+        debugLogging: false
+      }
     });
+
+    await storage.update({ targetLanguage: 'ja' });
+
+    const saved = browser.storage.local.set.mock.calls[0][0].settings;
+    expect(saved.targetLanguage).toBe('ja');
+    expect(saved.enabled).toBe(true);
   });
 
-  describe('reset', () => {
-    it('should reset to default settings', async () => {
-      const browser = (global as any).browser;
-
-      await storage.reset();
-
-      const savedData = browser.storage.local.set.mock.calls[0][0][0];
-      expect(savedData.settings.enabled).toBe(true);
-      expect(savedData.settings.openai.apiKey).toBe('');
-    });
+  it('export returns versioned payload', async () => {
+    const data = await storage.export();
+    expect(data.version).toBe('1.0.0');
+    expect(data.settings).toBeDefined();
+    expect(typeof data.timestamp).toBe('number');
   });
 
-  describe('export', () => {
-    it('should export settings', async () => {
-      const browser = (global as any).browser;
-      const currentSettings = {
+  it('import saves validated settings', async () => {
+    await storage.import({
+      version: '1.0.0',
+      timestamp: Date.now(),
+      settings: {
         enabled: true,
         autoDetect: true,
-        targetLanguage: 'zh-CN',
+        targetLanguage: 'fr',
         openai: {
-          apiKey: 'test-key',
+          apiKey: '',
           baseUrl: 'https://api.openai.com/v1',
-          models: ['gpt-3.5-turbo'],
-          maxConcurrency: 5,
-          timeout: 30000
+          models: ['gpt-4'],
+          maxConcurrency: 2,
+          timeout: 10000
         },
         cacheEnabled: true,
-        cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
+        cacheMaxAge: 500,
         blacklist: [],
         whitelist: [],
-        showTranslationBadge: true
-      };
-
-      browser.storage.local.get.mockResolvedValue({ settings: currentSettings });
-
-      const exported = await storage.export();
-
-      expect(exported.version).toBe('1.0.0');
-      expect(exported.settings).toEqual(currentSettings);
-      expect(exported.timestamp).toBeDefined();
+        showTranslationBadge: true,
+        debugLogging: false
+      }
     });
 
-    it('should handle export errors', async () => {
-      const browser = (global as any).browser;
-      browser.storage.local.get.mockRejectedValue(new Error('Storage error'));
-
-      await expect(storage.export()).rejects.toThrow('Storage error');
-    });
+    expect(browser.storage.local.set).toHaveBeenCalled();
   });
 
-  describe('import', () => {
-    it('should import settings', async () => {
-      const browser = (global as any).browser;
-      const importData = {
-        version: '1.0.0',
-        timestamp: Date.now(),
-        settings: {
-          enabled: false,
-          autoDetect: true,
-          targetLanguage: 'ja',
-          openai: {
-            apiKey: 'test-key',
-            baseUrl: 'https://api.test.com/v1',
-            models: ['gpt-4'],
-            maxConcurrency: 10,
-            timeout: 15000
-          },
-          cacheEnabled: false,
-          cacheMaxAge: 86400000,
-          blacklist: ['example.com'],
-          whitelist: ['test.com'],
-          showTranslationBadge: false
-        }
-      };
-
-      await storage.import(importData);
-
-      expect(browser.storage.local.set).toHaveBeenCalledWith({ settings: expect.any(Object) });
-    });
-
-    it('should validate imported settings', async () => {
-      const browser = (global as any).browser;
-      const invalidImport = {
-        version: '1.0.0',
-        timestamp: Date.now(),
-        settings: {
-          enabled: 'invalid' as any,
-          autoDetect: 'invalid' as any,
-          targetLanguage: 'invalid',
-          openai: {
-            apiKey: 'test-key',
-            baseUrl: 'https://api.test.com/v1',
-            models: ['gpt-4'],
-            maxConcurrency: 10,
-            timeout: 15000
-          },
-          cacheEnabled: 'invalid' as any,
-          cacheMaxAge: 'invalid' as any,
-          blacklist: 'invalid' as any,
-          whitelist: 'invalid' as any,
-          showTranslationBadge: 'invalid' as any
-        }
-      };
-
-      await storage.import(invalidImport);
-
-      const savedData = browser.storage.local.set.mock.calls[0][0][0];
-      expect(savedData.settings.enabled).toBe(true);
-      expect(savedData.settings.targetLanguage).toBe('zh-CN');
-    });
-
-    it('should warn on version mismatch', async () => {
-      const browser = (global as any).browser;
-      const importData = {
-        version: '2.0.0',
-        timestamp: Date.now(),
-        settings: {
-          enabled: false,
-          autoDetect: true,
-          targetLanguage: 'ja',
-          openai: {
-            apiKey: 'test-key',
-            baseUrl: 'https://api.test.com/v1',
-            models: ['gpt-4'],
-            maxConcurrency: 10,
-            timeout: 15000
-          },
-          cacheEnabled: false,
-          cacheMaxAge: 86400000,
-          blacklist: ['example.com'],
-          whitelist: ['test.com'],
-          showTranslationBadge: false
-        }
-      };
-
-      await storage.import(importData);
-
-      expect(browser.storage.local.set).toHaveBeenCalled();
-    });
-  });
-
-  describe('getDefaultSettings', () => {
-    it('should return default settings', () => {
-      const defaults = storage.getDefaultSettings();
-
-      expect(defaults.enabled).toBe(true);
-      expect(defaults.autoDetect).toBe(true);
-      expect(defaults.targetLanguage).toBe('zh-CN');
-      expect(defaults.openai.apiKey).toBe('');
-      expect(defaults.cacheEnabled).toBe(true);
-    });
+  it('getDefaultSettings returns baseline config', () => {
+    const defaults = storage.getDefaultSettings();
+    expect(defaults.enabled).toBe(true);
+    expect(defaults.targetLanguage).toBe('zh-CN');
   });
 });

@@ -275,7 +275,7 @@ describe('OpenAIService', () => {
         ok: true,
         json: async () => ({
           choices: [{
-            message: { content: 'Translated text' }
+            message: { content: '["翻译1","翻译2","翻译3"]' }
           }],
           usage: {
             total_tokens: 10
@@ -286,9 +286,9 @@ describe('OpenAIService', () => {
       const results = await service.translateBatch(requests);
 
       expect(results).toHaveLength(3);
-      results.forEach(result => {
-        expect(result.translatedText).toBe('Translated text');
-      });
+      expect(results[0].translatedText).toBe('翻译1');
+      expect(results[1].translatedText).toBe('翻译2');
+      expect(results[2].translatedText).toBe('翻译3');
       expect(mockFetch).toHaveBeenCalled();
     });
 
@@ -363,13 +363,11 @@ describe('OpenAIService', () => {
 
       mockFetch.mockRejectedValue(new Error('API error'));
 
-      const results = await service.translateBatch([
-        { text: 'Hello', sourceLang: 'en', targetLang: 'zh-CN' }
-      ]);
-
-      expect(results).toHaveLength(1);
-      expect(results[0].translatedText).toBe('Hello');
-      expect(mockFetch).toHaveBeenCalled();
+      await expect(
+        service.translateBatch([
+          { text: 'Hello', sourceLang: 'en', targetLang: 'zh-CN' }
+        ])
+      ).rejects.toThrow('API error');
     });
   });
 
