@@ -27,6 +27,7 @@ export class PageTranslationManagerV2 {
   private root: HTMLElement | null = null;
   private cancelled: boolean = false;
   private translatedUnits: Map<string, TranslatableUnit> = new Map();
+  private translatedContentKeys: Set<string> = new Set();
   
   constructor(settings: PluginSettings) {
     this.settings = settings;
@@ -50,7 +51,7 @@ export class PageTranslationManagerV2 {
   async translatePage(root?: HTMLElement): Promise<void> {
     // Only block if actively translating, allow re-translation when completed/idle/error
     if (this.stateManager.isTranslating()) {
-      console.log('[PageTranslationManagerV2] Already translating, skipping');
+      this.debugLog('Already translating, skipping');
       return;
     }
     
@@ -61,32 +62,37 @@ export class PageTranslationManagerV2 {
     // This ensures all text nodes are re-evaluated
     this.applier.revertAll();
     this.translatedUnits.clear();
+    this.translatedContentKeys.clear();
     this.dynamicHandler.clearProcessedCache();
     
-    console.log('[PageTranslationManagerV2] Starting page translation');
+    this.debugLog('Starting page translation');
     this.stateManager.setState('detecting');
     
     try {
       // Detect page language
       const pageLanguage = this.languageCache.getPageLanguage();
-      console.log(`[PageTranslationManagerV2] Detected page language: ${pageLanguage}`);
+      this.debugLog(`Detected page language: ${pageLanguage}`);
       
       // Check if translation is needed
       if (!this.languageCache.shouldTranslate(pageLanguage, this.settings.targetLanguage)) {
-        console.log('[PageTranslationManagerV2] Page already in target language, skipping');
+        this.debugLog('Page already in target language, skipping');
         this.stateManager.setState('idle');
         return;
       }
       
       this.stateManager.setState('translating');
       
+      // Start observing early to avoid missing nodes added during initial translation.
+      this.startDynamicObservation();
+      
       // Extract all translatable units
       const units = this.extractor.extract(this.root!);
-      console.log(`[PageTranslationManagerV2] Extracted ${units.length} translatable units`);
+      this.debugLog(`Extracted ${units.length} translatable units`);
       
       if (units.length === 0) {
-        console.log('[PageTranslationManagerV2] No translatable content found');
-        this.stateManager.setState('idle');
+        this.debugLog('No translatable content found in initial scan, keeping dynamic observation active');
+        this.stateManager.setState('completed');
+        this.stateManager.setProgress(0, 0);
         return;
       }
       
@@ -98,10 +104,7 @@ export class PageTranslationManagerV2 {
       if (!this.cancelled) {
         this.stateManager.setState('completed');
         this.stateManager.setProgress(units.length, units.length);
-        console.log(`[PageTranslationManagerV2] Page translation completed. Translated ${this.translatedUnits.size} units.`);
-        
-        // Start observing for dynamic content
-        this.startDynamicObservation();
+        this.debugLog(`Page translation completed. Translated ${this.translatedUnits.size} units.`);
       }
     } catch (error) {
       console.error('[PageTranslationManagerV2] Translation error:', error);
@@ -129,7 +132,12 @@ export class PageTranslationManagerV2 {
       const unit = this.extractor.extractFromElement(node);
       
       if (!unit) {
-        console.log('[PageTranslationManagerV2] No translatable content in node');
+        this.debugLog('No translatable content in node');
+        return;
+      }
+
+      if (this.shouldSkipText(unit.originalText)) {
+        this.debugLogSkip(unit.originalText, 'text-pattern');
         return;
       }
       
@@ -166,17 +174,29 @@ export class PageTranslationManagerV2 {
     
     // Filter units that need translation
     const unitsToTranslate: TranslatableUnit[] = [];
+    const seenKeys = new Set<string>();
     
     for (const unit of units) {
+      const contentKey = this.getContentKey(unit);
+      if (seenKeys.has(contentKey) || this.translatedContentKeys.has(contentKey)) {
+        this.debugLog(`Dedup skipped: ${contentKey}`);
+        continue;
+      }
+
       const detection = this.languageCache.detectText(unit.originalText);
       
       if (this.languageCache.shouldTranslate(detection.detected, this.settings.targetLanguage)) {
+        if (this.shouldSkipText(unit.originalText)) {
+          this.debugLogSkip(unit.originalText, 'text-pattern');
+          continue;
+        }
         unit.sourceLang = detection.detected;
         unitsToTranslate.push(unit);
+        seenKeys.add(contentKey);
       }
     }
     
-    console.log(`[PageTranslationManagerV2] ${unitsToTranslate.length} units need translation`);
+    this.debugLog(`${unitsToTranslate.length} units need translation`);
     
     let processedCount = 0;
     
@@ -200,8 +220,9 @@ export class PageTranslationManagerV2 {
         if (response && response.translatedText) {
           const translation = response.translatedText;
           if (this.isValidTranslation(translation, unit.originalText)) {
-            this.applier.apply(unit, translation);
+            this.applyTranslationSafely(unit, translation);
             this.translatedUnits.set(unit.id, unit);
+            this.translatedContentKeys.add(this.getContentKey(unit));
           } else {
             console.warn(`[PageTranslationManagerV2] Invalid translation for "${unit.originalText}": "${translation}"`);
           }
@@ -228,8 +249,9 @@ export class PageTranslationManagerV2 {
     });
     
     if (response && response.translatedText) {
-      this.applier.apply(unit, response.translatedText);
+      this.applyTranslationSafely(unit, response.translatedText);
       this.translatedUnits.set(unit.id, unit);
+      this.translatedContentKeys.add(this.getContentKey(unit));
       // Badge disabled - affects viewing experience
     }
   }
@@ -241,21 +263,12 @@ export class PageTranslationManagerV2 {
     if (!this.root) return;
     
     this.dynamicHandler.start(this.root, async (newUnits) => {
-      console.log(`[PageTranslationManagerV2] New dynamic content: ${newUnits.length} units`);
-      
-      // Translate new units
-      for (const unit of newUnits) {
-        const detection = this.languageCache.detectText(unit.originalText);
-        
-        if (this.languageCache.shouldTranslate(detection.detected, this.settings.targetLanguage)) {
-          unit.sourceLang = detection.detected;
-          
-          try {
-            await this.translateSingleUnit(unit);
-          } catch (error) {
-            console.error('[PageTranslationManagerV2] Dynamic content translation error:', error);
-          }
-        }
+      this.debugLog(`New dynamic content: ${newUnits.length} units`);
+
+      try {
+        await this.translateDynamicUnits(newUnits);
+      } catch (error) {
+        console.error('[PageTranslationManagerV2] Dynamic content translation error:', error);
       }
     });
   }
@@ -267,8 +280,9 @@ export class PageTranslationManagerV2 {
     this.dynamicHandler.stop();
     this.applier.revertAll();
     this.translatedUnits.clear();
+    this.translatedContentKeys.clear();
     this.stateManager.reset();
-    console.log('[PageTranslationManagerV2] Page reverted');
+    this.debugLog('Page reverted');
   }
   
   /**
@@ -284,6 +298,7 @@ export class PageTranslationManagerV2 {
       if (unit.parentElement === node || node.contains(unit.parentElement)) {
         this.applier.revert(unit);
         this.translatedUnits.delete(id);
+        this.translatedContentKeys.delete(this.getContentKey(unit));
       }
     }
   }
@@ -305,7 +320,7 @@ export class PageTranslationManagerV2 {
     const openAIService = getOpenAIService(this.settings.openai);
     openAIService.cancelAll();
     this.stateManager.reset();
-    console.log('[PageTranslationManagerV2] Translation cancelled');
+    this.debugLog('Translation cancelled');
   }
   
   /**
@@ -388,5 +403,148 @@ export class PageTranslationManagerV2 {
     }
     
     return true;
+  }
+
+  /**
+   * Applies translated text while pausing mutation observation to avoid self-trigger loops.
+   */
+  private applyTranslationSafely(unit: TranslatableUnit, translation: string): void {
+    this.dynamicHandler.pause();
+    try {
+      this.applier.apply(unit, translation);
+    } finally {
+      this.dynamicHandler.resume();
+    }
+  }
+
+  /**
+   * Batch-translates dynamic units to reduce request fragmentation and UI jitter.
+   */
+  private async translateDynamicUnits(newUnits: TranslatableUnit[]): Promise<void> {
+    const openAIService = getOpenAIService(this.settings.openai);
+    const unitsToTranslate: TranslatableUnit[] = [];
+    const seenKeys = new Set<string>();
+
+    for (const unit of newUnits) {
+      const contentKey = this.getContentKey(unit);
+      if (seenKeys.has(contentKey) || this.translatedContentKeys.has(contentKey)) {
+        this.debugLog(`Dynamic dedup skipped: ${contentKey}`);
+        continue;
+      }
+
+      if (this.shouldSkipText(unit.originalText)) {
+        this.debugLogSkip(unit.originalText, 'text-pattern');
+        continue;
+      }
+
+      const detection = this.languageCache.detectText(unit.originalText);
+      if (!this.languageCache.shouldTranslate(detection.detected, this.settings.targetLanguage)) {
+        continue;
+      }
+
+      unit.sourceLang = detection.detected;
+      unitsToTranslate.push(unit);
+      seenKeys.add(contentKey);
+    }
+
+    if (unitsToTranslate.length === 0) {
+      this.debugLog('Dynamic batch skipped: 0 units after filtering');
+      return;
+    }
+
+    const requests: TranslationRequest[] = unitsToTranslate.map((unit) => ({
+      text: unit.originalText,
+      sourceLang: unit.sourceLang || 'en',
+      targetLang: this.settings.targetLanguage,
+    }));
+
+    const responses = await openAIService.translateBatch(requests);
+    let appliedCount = 0;
+    for (let i = 0; i < unitsToTranslate.length; i++) {
+      const unit = unitsToTranslate[i];
+      const response = responses[i];
+      if (!response?.translatedText) {
+        continue;
+      }
+
+      if (!this.isValidTranslation(response.translatedText, unit.originalText)) {
+        continue;
+      }
+
+      this.applyTranslationSafely(unit, response.translatedText);
+      this.translatedUnits.set(unit.id, unit);
+      this.translatedContentKeys.add(this.getContentKey(unit));
+      appliedCount += 1;
+    }
+    this.debugLog(`Dynamic batch translated: ${appliedCount}/${unitsToTranslate.length}`);
+  }
+
+  /**
+   * Builds a stable key used to deduplicate repeated content across dynamic updates.
+   */
+  private getContentKey(unit: TranslatableUnit): string {
+    const xpath = unit.context?.xpath || '';
+    const text = unit.originalText.replace(/\s+/g, ' ').trim();
+    return `${xpath}::${text}`;
+  }
+
+  private isDebugEnabled(): boolean {
+    return Boolean(this.settings.debugLogging);
+  }
+
+  private debugLog(message: string, ...args: unknown[]): void {
+    if (!this.isDebugEnabled()) {
+      return;
+    }
+    console.log(`[PageTranslationManagerV2][Debug] ${message}`, ...args);
+  }
+
+  private debugLogSkip(text: string, reason: string): void {
+    if (!this.isDebugEnabled()) {
+      return;
+    }
+    const preview = text.length > 80 ? `${text.slice(0, 80)}...` : text;
+    console.log(`[PageTranslationManagerV2][Debug] Skip (${reason}): "${preview}"`);
+  }
+
+  /**
+   * Returns true for texts that should not be sent for translation.
+   * This avoids low-value requests like prices, pure numbers and symbol-only tokens.
+   */
+  private shouldSkipText(text: string): boolean {
+    const normalized = (text || '').trim();
+    if (!normalized) {
+      return true;
+    }
+
+    // Pure numbers / punctuation / separators
+    if (/^[\d\s.,:;!?()[\]{}\-_/\\|@#%&*+=~`"'<>]+$/.test(normalized)) {
+      return true;
+    }
+
+    // Common price / currency tokens
+    if (/^[¥$€£₹]\s?\d[\d,]*(\.\d+)?(%|[a-zA-Z]{1,4})?$/.test(normalized)) {
+      return true;
+    }
+    if (/^\d[\d,]*(\.\d+)?\s?(usd|eur|gbp|cny|rmb|jpy|krw|cad|aud|hkd|ntd|元|块|円|엔|달러|dollars?)$/i.test(normalized)) {
+      return true;
+    }
+
+    // Percentages and short numeric stats
+    if (/^\d+([.,]\d+)?\s?%$/.test(normalized)) {
+      return true;
+    }
+
+    // Numeric lists, e.g. "512, 1024, 2048, 4096" (also supports ; / | and newlines)
+    if (/^(\d+([.,]\d+)?\s*([,;/|\n]\s*)+)+\d+([.,]\d+)?$/.test(normalized)) {
+      return true;
+    }
+
+    // Very short tokens without letters from any language (e.g. "30.0", "--")
+    if (normalized.length <= 8 && !/[\p{L}]/u.test(normalized)) {
+      return true;
+    }
+
+    return false;
   }
 }

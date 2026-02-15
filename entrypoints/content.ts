@@ -33,6 +33,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
   blacklist: [],
   whitelist: [],
   showTranslationBadge: true,
+  debugLogging: false,
 };
 
 async function loadSettings(): Promise<PluginSettings> {
@@ -249,10 +250,76 @@ async function autoTranslateIfEnabled(): Promise<void> {
   }
 
   try {
+    await waitForPageStable();
     await pageManager.translatePage();
   } catch (error) {
     console.error("[Content Script] Auto translation failed:", error);
   }
+}
+
+/**
+ * Waits for the page to be in a relatively stable state before auto translation.
+ * This reduces missed content on pages that render asynchronously right after load.
+ */
+async function waitForPageStable(
+  maxWaitMs = 5000,
+  quietWindowMs = 600,
+): Promise<void> {
+  const waitForComplete = async (): Promise<void> => {
+    if (document.readyState === "complete") {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      const timeoutId = window.setTimeout(resolve, maxWaitMs);
+      const onReadyStateChange = () => {
+        if (document.readyState === "complete") {
+          cleanup();
+          resolve();
+        }
+      };
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener("readystatechange", onReadyStateChange);
+      };
+      document.addEventListener("readystatechange", onReadyStateChange);
+    });
+  };
+
+  await waitForComplete();
+
+  await new Promise<void>((resolve) => {
+    let quietTimer: number | null = null;
+    const timeoutId = window.setTimeout(cleanupAndResolve, maxWaitMs);
+
+    const observer = new MutationObserver(() => {
+      if (quietTimer !== null) {
+        clearTimeout(quietTimer);
+      }
+      quietTimer = window.setTimeout(cleanupAndResolve, quietWindowMs);
+    });
+
+    const cleanup = () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+      if (quietTimer !== null) {
+        clearTimeout(quietTimer);
+      }
+    };
+
+    function cleanupAndResolve() {
+      cleanup();
+      resolve();
+    }
+
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    quietTimer = window.setTimeout(cleanupAndResolve, quietWindowMs);
+  });
 }
 
 function handleIncomingMessage(message: any): any {

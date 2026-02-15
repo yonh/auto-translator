@@ -52,6 +52,7 @@ export interface PluginSettings {
   blacklist: string[]; // URLs to exclude
   whitelist: string[]; // URLs to include
   showTranslationBadge: boolean;
+  debugLogging?: boolean;
 }
 
 // Language detection result

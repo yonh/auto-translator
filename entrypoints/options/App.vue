@@ -230,6 +230,20 @@
             显示翻译标记
           </label>
         </div>
+
+        <div class="control-group">
+          <label>
+            <input
+              type="checkbox"
+              v-model="settings.debugLogging"
+              @change="saveSettings"
+            />
+            启用调试日志
+          </label>
+          <small class="help-text">
+            打印跳过原因、去重命中、动态批量翻译统计到页面控制台
+          </small>
+        </div>
       </section>
 
       <section class="settings-section cache-stats" v-if="cacheStats">
@@ -320,7 +334,8 @@ const settings = ref<PluginSettings>({
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
   whitelist: [],
-  showTranslationBadge: true
+  showTranslationBadge: true,
+  debugLogging: false
 });
 
 const modelsText = ref('');
