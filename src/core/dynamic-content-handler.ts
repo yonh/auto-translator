@@ -50,6 +50,7 @@ export class DynamicContentHandler {
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private processedElements: WeakSet<Element> = new WeakSet();
+  private forceReprocessElements: WeakSet<Element> = new WeakSet();
 
   constructor(
     extractor: TextNodeExtractor,
@@ -118,6 +119,7 @@ export class DynamicContentHandler {
     }
 
     this.pendingNodes.clear();
+    this.forceReprocessElements = new WeakSet();
     this.callback = null;
     this.isRunning = false;
     this.isPaused = false;
@@ -164,6 +166,9 @@ export class DynamicContentHandler {
           const element = target as HTMLElement;
           if (this.isTranslatableNode(element)) {
             this.pendingNodes.add(element);
+            // Attribute-only toggles (e.g. aria-hidden/style/class) often reuse
+            // existing nodes; allow them to be translated again.
+            this.forceReprocessElements.add(element);
           }
         }
       }
@@ -232,7 +237,10 @@ export class DynamicContentHandler {
         const element = node as HTMLElement;
 
         // Skip if already processed
-        if (this.processedElements.has(element)) {
+        if (
+          this.processedElements.has(element) &&
+          !this.forceReprocessElements.has(element)
+        ) {
           continue;
         }
 
@@ -261,6 +269,7 @@ export class DynamicContentHandler {
         }
 
         this.processedElements.add(element);
+        this.forceReprocessElements.delete(element);
       } else if (node.nodeType === Node.TEXT_NODE) {
         const parent = node.parentElement;
         if (parent && !this.processedElements.has(parent)) {

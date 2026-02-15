@@ -469,6 +469,7 @@ export class PageTranslationManagerV2 {
   private async translateDynamicUnits(
     newUnits: TranslatableUnit[],
   ): Promise<void> {
+    this.cleanupStaleTranslatedState();
     const openAIService = getOpenAIService(this.settings.openai);
     const unitsToTranslate: TranslatableUnit[] = [];
     const seenKeys = new Set<string>();
@@ -537,6 +538,36 @@ export class PageTranslationManagerV2 {
     this.debugLog(
       `Dynamic batch translated: ${appliedCount}/${unitsToTranslate.length}`,
     );
+  }
+
+  /**
+   * Removes dedup entries for units that are no longer translated in the live DOM.
+   * This keeps dynamic re-translation working for popovers/dialogs that reset text
+   * back to source language when reopened.
+   */
+  private cleanupStaleTranslatedState(): void {
+    for (const [id, unit] of this.translatedUnits) {
+      const hasConnectedNode = unit.textNodes.some((node) => node.isConnected);
+      const contentKey = this.getContentKey(unit);
+
+      if (!hasConnectedNode) {
+        this.translatedUnits.delete(id);
+        this.translatedContentKeys.delete(contentKey);
+        continue;
+      }
+
+      const currentText = unit.textNodes
+        .map((node) => node.textContent || "")
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim();
+      const originalText = unit.originalText.replace(/\s+/g, " ").trim();
+
+      if (currentText === originalText) {
+        this.translatedUnits.delete(id);
+        this.translatedContentKeys.delete(contentKey);
+      }
+    }
   }
 
   /**
