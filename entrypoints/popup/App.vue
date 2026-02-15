@@ -23,7 +23,7 @@
       <div v-if="settings.enabled" class="settings-section">
         <div class="control-group">
           <label>目标语言</label>
-          <select v-model="settings.targetLanguage" @change="updateSettings">
+          <select v-model="settings.targetLanguage" @change="saveSettings">
             <option
               v-for="lang in languages"
               :key="lang.code"
@@ -39,7 +39,7 @@
             <input
               type="checkbox"
               v-model="settings.autoDetect"
-              @change="updateSettings"
+              @change="saveSettings"
             />
             自动检测语言
           </label>
@@ -190,28 +190,20 @@ async function checkCurrentTab() {
 }
 
 async function loadSettings() {
-  const result = await browser.tabs.query({ active: true, currentWindow: true });
-  
-  if (result[0]?.id) {
-    try {
-      const response = await browser.tabs.sendMessage(result[0].id, {
-        type: 'getSettings'
-      });
+  try {
+    const result = await browser.storage.local.get('settings');
+    const savedSettings = result.settings;
 
-      if (response) {
-        settings.value = {
-          enabled: response.enabled,
-          autoDetect: response.autoDetect,
-          targetLanguage: response.targetLanguage
-        };
-        console.log('[Popup] Settings loaded:', settings.value);
-      } else {
-        console.warn('[Popup] No response from content script, may be on special page');
-      }
-    } catch (error) {
-      console.error('[Popup] Failed to load settings:', error);
-      // 在特殊页面加载设置失败是正常的，不显示错误
+    if (savedSettings) {
+      settings.value = {
+        enabled: savedSettings.enabled ?? true,
+        autoDetect: savedSettings.autoDetect ?? true,
+        targetLanguage: savedSettings.targetLanguage ?? 'zh-CN'
+      };
+      console.log('[Popup] Settings loaded from storage:', settings.value);
     }
+  } catch (error) {
+    console.error('[Popup] Failed to load settings from storage:', error);
   }
 }
 
@@ -245,26 +237,38 @@ async function checkStatus() {
 }
 
 async function toggleEnabled() {
-  await updateSettings();
+  await saveSettings();
 }
 
-async function updateSettings() {
-  const result = await browser.tabs.query({ active: true, currentWindow: true });
-  if (result[0]?.id) {
-    try {
-      await browser.tabs.sendMessage(result[0].id, {
-        type: 'updateSettings',
-        settings: {
-          enabled: settings.value.enabled,
-          autoDetect: settings.value.autoDetect,
-          targetLanguage: settings.value.targetLanguage
-        }
-      });
-      console.log('[Popup] Settings updated');
-    } catch (error) {
-      console.error('[Popup] Failed to update settings:', error);
-      alert('更新设置失败，请重试');
+async function saveSettings() {
+  try {
+    const result = await browser.storage.local.get('settings');
+    const currentSettings = result.settings || {};
+
+    const updatedSettings = {
+      ...currentSettings,
+      enabled: settings.value.enabled,
+      autoDetect: settings.value.autoDetect,
+      targetLanguage: settings.value.targetLanguage
+    };
+
+    await browser.storage.local.set({ settings: updatedSettings });
+
+    // 可选：通知 content script（失败不影响设置保存）
+    const tabResult = await browser.tabs.query({ active: true, currentWindow: true });
+    if (tabResult[0]?.id) {
+      try {
+        await browser.tabs.sendMessage(tabResult[0].id, {
+          type: 'updateSettings',
+          settings: updatedSettings
+        });
+      } catch (error) {
+        console.log('[Popup] Content script not reachable, settings saved to storage');
+      }
     }
+  } catch (error) {
+    console.error('[Popup] Failed to save settings:', error);
+    alert('保存设置失败，请重试');
   }
 }
 

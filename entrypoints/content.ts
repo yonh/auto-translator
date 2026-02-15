@@ -1,7 +1,7 @@
-import webext from 'webextension-polyfill';
-import { defineContentScript } from 'wxt/sandbox';
-import { PageTranslationManagerV2 } from '~/src/core/page-translation-manager-v2';
-import { PluginSettings } from '~/src/types';
+import webext from "webextension-polyfill";
+import { defineContentScript } from "wxt/sandbox";
+import { PageTranslationManagerV2 } from "~/src/core/page-translation-manager-v2";
+import { PluginSettings } from "~/src/types";
 
 let pageManager: PageTranslationManagerV2 | null = null;
 let currentSettings: PluginSettings | null = null;
@@ -15,24 +15,29 @@ let isTranslated: boolean = false;
 const DEFAULT_SETTINGS: PluginSettings = {
   enabled: true,
   autoDetect: true,
-  targetLanguage: 'zh-CN',
+  targetLanguage: "zh-CN",
   openai: {
-    apiKey: '',
-    baseUrl: 'https://api.openai.com/v1',
-    models: ['gpt-3.5-turbo'],
+    apiKey: "",
+    baseUrl: "https://api.openai.com/v1",
+    models: ["gpt-3.5-turbo"],
     maxConcurrency: 5,
-    timeout: 30000
+    timeout: 30000,
+    chunkSize: 0,
+    batchMaxChars: 20000,
+    batchMaxItems: 100,
+    batchMaxTokens: 10000,
+    batchRetryCount: 2,
   },
   cacheEnabled: true,
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
   whitelist: [],
-  showTranslationBadge: true
+  showTranslationBadge: true,
 };
 
 async function loadSettings(): Promise<PluginSettings> {
   try {
-    const data = await webext.storage.local.get('settings');
+    const data = await webext.storage.local.get("settings");
 
     if (!data || !data.settings) {
       return { ...DEFAULT_SETTINGS };
@@ -40,7 +45,7 @@ async function loadSettings(): Promise<PluginSettings> {
 
     return data.settings as PluginSettings;
   } catch (error) {
-    console.error('[Content Script] Failed to load settings:', error);
+    console.error("[Content Script] Failed to load settings:", error);
     return { ...DEFAULT_SETTINGS };
   }
 }
@@ -52,15 +57,15 @@ function updateFloatingStatus(status: string): void {
   if (!statusTextEl || !actionButton || !revertButton) return;
   statusTextEl.textContent = status;
 
-  isTranslated = status === 'completed';
+  isTranslated = status === "completed";
 
-  if (status === 'translating' || status === 'detecting') {
-    actionButton.textContent = 'Stop';
-    actionButton.style.background = '#ef4444';
+  if (status === "translating" || status === "detecting") {
+    actionButton.textContent = "Stop";
+    actionButton.style.background = "#ef4444";
     revertButton.disabled = true;
   } else {
-    actionButton.textContent = 'Translate';
-    actionButton.style.background = '#10b981';
+    actionButton.textContent = "Translate";
+    actionButton.style.background = "#10b981";
     revertButton.disabled = !isTranslated;
   }
 }
@@ -81,7 +86,9 @@ function bindStatusUpdates(): void {
  * Controls visibility of the floating control based on auto-translate settings.
  */
 function updateFloatingVisibility(): void {
-  const shouldShow = Boolean(currentSettings?.enabled && currentSettings?.autoDetect);
+  const shouldShow = Boolean(
+    currentSettings?.enabled && currentSettings?.autoDetect,
+  );
 
   if (!shouldShow) {
     unsubscribeStatus?.();
@@ -103,9 +110,11 @@ function updateFloatingVisibility(): void {
 function ensureFloatingControl(): void {
   if (floatingControl) return;
 
-  floatingControl = document.createElement('div');
-  floatingControl.id = 'at-floating-toggle';
-  floatingControl.setAttribute('style', `
+  floatingControl = document.createElement("div");
+  floatingControl.id = "at-floating-toggle";
+  floatingControl.setAttribute(
+    "style",
+    `
     position: fixed;
     right: 20px;
     bottom: 20px;
@@ -121,14 +130,17 @@ function ensureFloatingControl(): void {
     box-shadow: 0 6px 16px rgba(0,0,0,0.2);
     z-index: 2147483647;
     backdrop-filter: blur(6px);
-  `);
+  `,
+  );
 
-  statusTextEl = document.createElement('span');
-  statusTextEl.textContent = 'Idle';
+  statusTextEl = document.createElement("span");
+  statusTextEl.textContent = "Idle";
 
-  actionButton = document.createElement('button');
-  actionButton.textContent = 'Translate';
-  actionButton.setAttribute('style', `
+  actionButton = document.createElement("button");
+  actionButton.textContent = "Translate";
+  actionButton.setAttribute(
+    "style",
+    `
     padding: 6px 10px;
     background: #10b981;
     color: #fff;
@@ -136,23 +148,26 @@ function ensureFloatingControl(): void {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-  `);
+  `,
+  );
 
-  actionButton.addEventListener('click', () => {
+  actionButton.addEventListener("click", () => {
     if (!pageManager) return;
     const status = pageManager.getStatus();
-    if (status === 'translating') {
+    if (status === "translating") {
       pageManager.cancel();
       return;
     }
     pageManager.translatePage().catch((err) => {
-      console.error('[Content Script] Floating translate failed:', err);
+      console.error("[Content Script] Floating translate failed:", err);
     });
   });
 
-  revertButton = document.createElement('button');
-  revertButton.textContent = 'Original';
-  revertButton.setAttribute('style', `
+  revertButton = document.createElement("button");
+  revertButton.textContent = "Original";
+  revertButton.setAttribute(
+    "style",
+    `
     padding: 6px 10px;
     background: #374151;
     color: #fff;
@@ -160,18 +175,20 @@ function ensureFloatingControl(): void {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-  `);
+  `,
+  );
   revertButton.disabled = true;
 
-  revertButton.addEventListener('click', () => {
+  revertButton.addEventListener("click", () => {
     if (!pageManager) return;
     pageManager.cancel();
-    pageManager.revertPage()
+    pageManager
+      .revertPage()
       .then(() => {
-        updateFloatingStatus('idle');
+        updateFloatingStatus("idle");
       })
       .catch((err) => {
-        console.error('[Content Script] Floating revert failed:', err);
+        console.error("[Content Script] Floating revert failed:", err);
       });
   });
 
@@ -185,7 +202,7 @@ async function saveSettings(settings: PluginSettings): Promise<void> {
   try {
     await webext.storage.local.set({ settings });
   } catch (error) {
-    console.error('[Content Script] Failed to save settings:', error);
+    console.error("[Content Script] Failed to save settings:", error);
     throw error;
   }
 }
@@ -198,20 +215,23 @@ async function initialize(): Promise<void> {
   currentSettings = await loadSettings();
 
   if (!currentSettings.enabled) {
-    console.log('[Content Script] Plugin disabled, skipping initialization');
+    console.log("[Content Script] Plugin disabled, skipping initialization");
     return;
   }
 
   try {
     pageManager = new PageTranslationManagerV2(currentSettings);
     await pageManager.initialize();
-    console.log('[Content Script] Translation manager initialized');
+    console.log("[Content Script] Translation manager initialized");
 
     updateFloatingVisibility();
 
     await autoTranslateIfEnabled();
   } catch (error) {
-    console.error('[Content Script] Failed to initialize translation manager:', error);
+    console.error(
+      "[Content Script] Failed to initialize translation manager:",
+      error,
+    );
     pageManager = null;
   }
 }
@@ -231,137 +251,183 @@ async function autoTranslateIfEnabled(): Promise<void> {
   try {
     await pageManager.translatePage();
   } catch (error) {
-    console.error('[Content Script] Auto translation failed:', error);
+    console.error("[Content Script] Auto translation failed:", error);
   }
 }
 
 function handleIncomingMessage(message: any): any {
   const { type, data, id } = message;
 
-  console.log('[Content Script] Received message:', type);
+  console.log("[Content Script] Received message:", type);
 
   switch (type) {
-    case 'TRANSLATE_PAGE':
-    case 'translatePage':
+    case "TRANSLATE_PAGE":
+    case "translatePage":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
-      return pageManager.translatePage()
+      return pageManager
+        .translatePage()
         .then(() => ({ success: true, id }))
         .catch((e) => {
-          console.error('[Content Script] Translation failed:', e);
+          console.error("[Content Script] Translation failed:", e);
           return { success: false, error: String(e), id };
         });
 
-    case 'TRANSLATE_NODE':
-    case 'translateNode':
+    case "TRANSLATE_NODE":
+    case "translateNode":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
       const node = document.getElementById(id);
 
       if (!node) {
         console.warn(`[Content Script] Node not found: ${id}`);
-        return { success: false, error: 'Node not found', id };
+        return { success: false, error: "Node not found", id };
       }
 
-      return pageManager.translateNode(node)
+      return pageManager
+        .translateNode(node)
         .then(() => ({ success: true, id }))
         .catch((e) => {
-          console.error('[Content Script] Node translation failed:', e);
+          console.error("[Content Script] Node translation failed:", e);
           return { success: false, error: String(e), id };
         });
 
-    case 'REVERT_PAGE':
-    case 'revertPage':
+    case "REVERT_PAGE":
+    case "revertPage":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
-      return pageManager.revertPage()
+      return pageManager
+        .revertPage()
         .then(() => ({ success: true, id }))
         .catch((e) => {
-          console.error('[Content Script] Revert failed:', e);
+          console.error("[Content Script] Revert failed:", e);
           return { success: false, error: String(e), id };
         });
 
-    case 'REVERT_NODE':
-    case 'revertNode':
+    case "REVERT_NODE":
+    case "revertNode":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
       const revertNode = document.getElementById(id);
 
       if (!revertNode) {
         console.warn(`[Content Script] Node not found: ${id}`);
-        return { success: false, error: 'Node not found', id };
+        return { success: false, error: "Node not found", id };
       }
 
-      return pageManager.revertNode(revertNode)
+      return pageManager
+        .revertNode(revertNode)
         .then(() => ({ success: true, id }))
         .catch((e) => {
-          console.error('[Content Script] Node revert failed:', e);
+          console.error("[Content Script] Node revert failed:", e);
           return { success: false, error: String(e), id };
         });
 
-    case 'UPDATE_SETTINGS':
-    case 'updateSettings':
-      return updateSettings(data)
-        .then(() => ({ success: true, id }))
-        .catch((e) => {
-          console.error('[Content Script] Update settings failed:', e);
-          return { success: false, error: String(e), id };
-        });
+    case "UPDATE_SETTINGS":
+    case "updateSettings":
+      currentSettings = { ...currentSettings, ...data };
+      console.log(
+        "[Content Script] Settings updated in memory:",
+        currentSettings,
+      );
 
-    case 'GET_STATUS':
-    case 'getStatus':
-    case 'getSettings':
+      if (pageManager) {
+        pageManager.updateSettings(currentSettings);
+      }
+
+      return Promise.resolve({ success: true, id });
+
+    case "GET_STATUS":
+    case "getStatus":
+    case "getSettings":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
       const settingsData = {
         enabled: currentSettings?.enabled,
         autoDetect: currentSettings?.autoDetect,
-        targetLanguage: currentSettings?.targetLanguage
+        targetLanguage: currentSettings?.targetLanguage,
       };
 
-      return { success: true, data: { status: pageManager.getStatus(), ...settingsData }, id };
+      return {
+        success: true,
+        data: { status: pageManager.getStatus(), ...settingsData },
+        id,
+      };
 
-    case 'GET_PROGRESS':
-    case 'getProgress':
+    case "GET_PROGRESS":
+    case "getProgress":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
-      return { success: true, data: { progress: pageManager.getProgress() }, id };
+      return {
+        success: true,
+        data: { progress: pageManager.getProgress() },
+        id,
+      };
 
-    case 'CLEAR_CACHE':
-    case 'clearCache':
+    case "CLEAR_CACHE":
+    case "clearCache":
       if (!pageManager) {
-        console.error('[Content Script] Translation manager not initialized');
-        return { success: false, error: 'Translation manager not initialized', id };
+        console.error("[Content Script] Translation manager not initialized");
+        return {
+          success: false,
+          error: "Translation manager not initialized",
+          id,
+        };
       }
 
-      return pageManager.clearCache()
+      return pageManager
+        .clearCache()
         .then(() => ({ success: true, id, error: null }))
         .catch((e) => {
-          console.error('[Content Script] Clear cache failed:', e);
+          console.error("[Content Script] Clear cache failed:", e);
           return { success: false, error: String(e), id };
         });
 
-    case 'SETTINGS_CHANGED':
-    case 'settingsChanged':
-      console.log('[Content Script] Settings changed:', data);
+    case "SETTINGS_CHANGED":
+    case "settingsChanged":
+      console.log("[Content Script] Settings changed:", data);
       currentSettings = data.settings;
 
       if (currentSettings && pageManager) {
@@ -376,26 +442,26 @@ function handleIncomingMessage(message: any): any {
       return {
         success: false,
         error: `Unknown message type: ${type}`,
-        id
+        id,
       };
   }
 }
 
 export default defineContentScript({
-  matches: ['<all_urls>'],
+  matches: ["<all_urls>"],
   main(ctx) {
-    console.log('[Content Script] Context:', ctx);
+    console.log("[Content Script] Context:", ctx);
 
     webext.runtime.onMessage.addListener(handleIncomingMessage);
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
         initialize();
       });
     } else {
       initialize();
     }
 
-    console.log('[Content Script] Loaded');
-  }
+    console.log("[Content Script] Loaded");
+  },
 });
