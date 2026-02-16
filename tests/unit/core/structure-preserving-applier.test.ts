@@ -119,58 +119,6 @@ describe('StructurePreservingApplier', () => {
     });
   });
 
-  describe('translation badges', () => {
-    it('should add translation badge', () => {
-      container.innerHTML = '<p>Hello</p>';
-      const p = container.querySelector('p')!;
-      
-      applier.addTranslationBadge(p);
-      
-      const badge = p.querySelector('.at-translation-badge');
-      expect(badge).not.toBeNull();
-    });
-
-    it('should not add duplicate badges', () => {
-      container.innerHTML = '<p>Hello</p>';
-      const p = container.querySelector('p')!;
-      
-      applier.addTranslationBadge(p);
-      applier.addTranslationBadge(p);
-      
-      const badges = p.querySelectorAll('.at-translation-badge');
-      expect(badges.length).toBe(1);
-    });
-
-    it('should remove translation badge', () => {
-      container.innerHTML = '<p>Hello</p>';
-      const p = container.querySelector('p')!;
-      
-      applier.addTranslationBadge(p);
-      expect(p.querySelector('.at-translation-badge')).not.toBeNull();
-      
-      applier.removeTranslationBadge(p);
-      expect(p.querySelector('.at-translation-badge')).toBeNull();
-    });
-
-    it('should clear all badges', () => {
-      container.innerHTML = `
-        <p id="p1">First</p>
-        <p id="p2">Second</p>
-      `;
-      
-      const p1 = container.querySelector('#p1')!;
-      const p2 = container.querySelector('#p2')!;
-      
-      applier.addTranslationBadge(p1);
-      applier.addTranslationBadge(p2);
-      
-      applier.clearBadges();
-      
-      expect(p1.querySelector('.at-translation-badge')).toBeNull();
-      expect(p2.querySelector('.at-translation-badge')).toBeNull();
-    });
-  });
-
   describe('getTranslatedCount', () => {
     it('should return correct count of translated units', () => {
       container.innerHTML = `

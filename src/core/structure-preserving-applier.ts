@@ -19,9 +19,6 @@ export class StructurePreservingApplier {
   /** Map of unit IDs to their original content for revert */
   private originals: Map<string, OriginalContent[]> = new Map();
   
-  /** Set of translation badges for cleanup */
-  private badges: Set<Element> = new Set();
-  
   /** Map of translated units */
   private translatedUnits: Map<string, TranslatableUnit> = new Map();
   
@@ -203,8 +200,6 @@ export class StructurePreservingApplier {
     this.originals.delete(unit.id);
     this.translatedUnits.delete(unit.id);
     
-    // Remove badge if present
-    this.removeTranslationBadge(unit.parentElement);
   }
   
   /**
@@ -227,66 +222,6 @@ export class StructurePreservingApplier {
     
     this.originals.clear();
     this.translatedUnits.clear();
-    this.clearBadges();
-  }
-  
-  /**
-   * Adds a translation badge to an element.
-   */
-  addTranslationBadge(element: Element): void {
-    // Check if badge already exists
-    if (element.querySelector('.at-translation-badge')) {
-      return;
-    }
-    
-    const badge = document.createElement('span');
-    badge.className = 'at-translation-badge';
-    badge.textContent = '✓';
-    badge.setAttribute('style', `
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #10b981;
-      color: white;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 10000;
-      font-family: system-ui, sans-serif;
-    `);
-    
-    // Ensure parent has positioning context
-    const htmlElement = element as HTMLElement;
-    const currentPosition = window.getComputedStyle(htmlElement).position;
-    
-    if (currentPosition === 'static') {
-      htmlElement.style.position = 'relative';
-    }
-    
-    htmlElement.appendChild(badge);
-    this.badges.add(badge);
-  }
-  
-  /**
-   * Removes a translation badge from an element.
-   */
-  removeTranslationBadge(element: Element): void {
-    const badge = element.querySelector('.at-translation-badge');
-    if (badge) {
-      badge.remove();
-      this.badges.delete(badge);
-    }
-  }
-  
-  /**
-   * Clears all translation badges.
-   */
-  clearBadges(): void {
-    for (const badge of this.badges) {
-      badge.remove();
-    }
-    this.badges.clear();
   }
   
   /**

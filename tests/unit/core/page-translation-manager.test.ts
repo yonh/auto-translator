@@ -41,8 +41,7 @@ describe('PageTranslationManager', () => {
       cacheEnabled: false,
       cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
       blacklist: [],
-      whitelist: [],
-      showTranslationBadge: false
+      whitelist: []
     };
 
     manager = new PageTranslationManager(mockSettings);

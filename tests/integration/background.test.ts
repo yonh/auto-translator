@@ -58,8 +58,7 @@ const DEFAULT_SETTINGS = {
   cacheEnabled: true,
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
-  whitelist: [],
-  showTranslationBadge: true
+  whitelist: []
 };
 
 describe.skip('Background Script Integration', () => {

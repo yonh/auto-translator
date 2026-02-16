@@ -252,7 +252,6 @@ export class PageTranslationManagerV2 {
             this.applyTranslationSafely(unit, translation);
             this.translatedUnits.set(unit.id, unit);
             this.translatedContentKeys.add(this.getContentKey(unit));
-            this.applyTranslationBadgeIfEnabled(unit);
           } else {
             console.warn(
               `[PageTranslationManagerV2] Invalid translation for "${unit.originalText}": "${translation}"`,
@@ -287,7 +286,6 @@ export class PageTranslationManagerV2 {
       this.applyTranslationSafely(unit, response.translatedText);
       this.translatedUnits.set(unit.id, unit);
       this.translatedContentKeys.add(this.getContentKey(unit));
-      this.applyTranslationBadgeIfEnabled(unit);
     }
   }
 
@@ -464,14 +462,6 @@ export class PageTranslationManagerV2 {
     }
   }
 
-  private applyTranslationBadgeIfEnabled(unit: TranslatableUnit): void {
-    if (this.settings.showTranslationBadge) {
-      this.applier.addTranslationBadge(unit.parentElement);
-    } else {
-      this.applier.removeTranslationBadge(unit.parentElement);
-    }
-  }
-
   /**
    * Batch-translates dynamic units to reduce request fragmentation and UI jitter.
    */
@@ -542,7 +532,6 @@ export class PageTranslationManagerV2 {
       this.applyTranslationSafely(unit, response.translatedText);
       this.translatedUnits.set(unit.id, unit);
       this.translatedContentKeys.add(this.getContentKey(unit));
-      this.applyTranslationBadgeIfEnabled(unit);
       appliedCount += 1;
     }
     this.debugLog(

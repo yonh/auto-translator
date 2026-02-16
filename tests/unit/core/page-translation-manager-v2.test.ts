@@ -19,7 +19,6 @@ const settings: PluginSettings = {
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
   whitelist: [],
-  showTranslationBadge: true,
   debugLogging: false,
 };
 
@@ -84,39 +83,4 @@ describe('PageTranslationManagerV2 popover reopen scenarios', () => {
     popover.remove();
   });
 
-  it('badge-toggle-adds-badge-when-enabled', () => {
-    const manager = new PageTranslationManagerV2(settings) as any;
-    manager.settings = { ...manager.settings, showTranslationBadge: true };
-
-    const parent = document.createElement('div');
-    const textNode = document.createTextNode('Hello');
-    parent.appendChild(textNode);
-    document.body.appendChild(parent);
-    const unit = createTranslatableUnit([textNode], parent);
-
-    manager.applyTranslationBadgeIfEnabled(unit);
-
-    expect(parent.querySelector('.at-translation-badge')).not.toBeNull();
-    parent.remove();
-  });
-
-  it('badge-toggle-removes-badge-when-disabled', () => {
-    const manager = new PageTranslationManagerV2(settings) as any;
-    manager.settings = { ...manager.settings, showTranslationBadge: true };
-
-    const parent = document.createElement('div');
-    const textNode = document.createTextNode('Hello');
-    parent.appendChild(textNode);
-    document.body.appendChild(parent);
-    const unit = createTranslatableUnit([textNode], parent);
-
-    manager.applyTranslationBadgeIfEnabled(unit);
-    expect(parent.querySelector('.at-translation-badge')).not.toBeNull();
-
-    manager.settings = { ...manager.settings, showTranslationBadge: false };
-    manager.applyTranslationBadgeIfEnabled(unit);
-
-    expect(parent.querySelector('.at-translation-badge')).toBeNull();
-    parent.remove();
-  });
 });

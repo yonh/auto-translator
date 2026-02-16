@@ -25,8 +25,7 @@ const DEFAULT_SETTINGS: PluginSettings = {
   cacheEnabled: true,
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
-  whitelist: [],
-  showTranslationBadge: true
+  whitelist: []
 };
 
 class BackgroundTranslationManager {

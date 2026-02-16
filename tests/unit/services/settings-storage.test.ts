@@ -55,7 +55,6 @@ describe('SettingsStorage', () => {
         cacheMaxAge: 100,
         blacklist: ['a.com'],
         whitelist: [],
-        showTranslationBadge: false,
         debugLogging: true
       }
     });
@@ -85,7 +84,6 @@ describe('SettingsStorage', () => {
       cacheMaxAge: 1000,
       blacklist: [],
       whitelist: [],
-      showTranslationBadge: true,
       debugLogging: false
     });
 
@@ -110,7 +108,6 @@ describe('SettingsStorage', () => {
         cacheMaxAge: 1000,
         blacklist: [],
         whitelist: [],
-        showTranslationBadge: true,
         debugLogging: false
       }
     });
@@ -149,7 +146,6 @@ describe('SettingsStorage', () => {
         cacheMaxAge: 500,
         blacklist: [],
         whitelist: [],
-        showTranslationBadge: true,
         debugLogging: false
       }
     });

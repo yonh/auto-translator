@@ -104,11 +104,6 @@ export class PageTranslationManager {
 
       if (!this.cancelled) {
         this.applier.apply(node, response.translatedText);
-
-        if (this.settings.showTranslationBadge && node instanceof HTMLElement) {
-          this.applier.addTranslationBadge(node);
-        }
-
         this.stateManager.setProgress(1, 1);
         this.stateManager.setState('completed');
       }
@@ -220,11 +215,6 @@ export class PageTranslationManager {
 
         const response = responses[requestIndex];
         this.applier.apply(element, response.translatedText);
-
-        if (this.settings.showTranslationBadge) {
-          this.applier.addTranslationBadge(element);
-        }
-
         requestIndex++;
       }
 

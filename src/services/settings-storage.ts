@@ -19,7 +19,6 @@ const DEFAULT_SETTINGS: PluginSettings = {
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
   whitelist: [],
-  showTranslationBadge: true,
   debugLogging: false
 };
 
@@ -121,7 +120,6 @@ export class SettingsStorage {
       cacheMaxAge: Math.max(0, Number(settings.cacheMaxAge) || DEFAULT_SETTINGS.cacheMaxAge),
       blacklist: Array.isArray(settings.blacklist) ? settings.blacklist : [],
       whitelist: Array.isArray(settings.whitelist) ? settings.whitelist : [],
-      showTranslationBadge: Boolean(settings.showTranslationBadge),
       debugLogging: Boolean(settings.debugLogging)
     };
   }

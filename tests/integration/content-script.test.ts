@@ -63,8 +63,7 @@ describe.skip('Content Script Integration', () => {
         cacheEnabled: true,
         cacheMaxAge: 604800000,
         blacklist: [],
-        whitelist: [],
-        showTranslationBadge: true
+        whitelist: []
       }
     });
 
@@ -128,8 +127,7 @@ describe.skip('Content Script Integration', () => {
           cacheEnabled: true,
           cacheMaxAge: 604800000,
           blacklist: [],
-          whitelist: [],
-          showTranslationBadge: true
+          whitelist: []
         }
       });
 
@@ -399,8 +397,7 @@ describe.skip('Content Script Integration', () => {
           cacheEnabled: true,
           cacheMaxAge: 604800000,
           blacklist: [],
-          whitelist: [],
-          showTranslationBadge: true
+          whitelist: []
         }
       });
 
@@ -466,8 +463,7 @@ describe.skip('Content Script Integration', () => {
         cacheEnabled: false,
         cacheMaxAge: 1209600000,
         blacklist: ['example.com'],
-        whitelist: [],
-        showTranslationBadge: false
+        whitelist: []
       };
 
       storageGetMock.mockResolvedValueOnce({ settings: testSettings });

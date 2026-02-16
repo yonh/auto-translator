@@ -722,7 +722,6 @@
   - 测试文本节点翻译应用
   - 测试元素节点翻译应用
   - 测试保留原始文本
-  - 测试翻译标记添加
   - 测试翻译还原
   - 测试批量应用
   - 测试 DOM 更新性能
@@ -736,8 +735,6 @@
   - `applyBatch(translations: Map<Node, string>): void`
   - `revert(node: Node): void`
   - `revertAll(): void`
-  - `addTranslationBadge(element: Element): void`
-  - `removeTranslationBadge(element: Element): void`
 - **状态**: 已完成
 
 #### 子任务 6.2.3: 运行测试验证
@@ -1730,7 +1727,6 @@ Chrome: chrome://extensions/
 6. **应用翻译**
    - TranslationApplier 将翻译结果应用到 DOM
    - 保存原始文本用于撤销
-   - 可选添加翻译标记（✓）
 
 7. **用户反馈**
    - 实时进度更新

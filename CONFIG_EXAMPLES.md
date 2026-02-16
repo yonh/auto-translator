@@ -39,8 +39,7 @@
     "cacheEnabled": true,
     "cacheMaxAge": 604800000,
     "blacklist": [],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }
 ```

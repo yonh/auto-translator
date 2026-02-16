@@ -52,7 +52,6 @@ export interface PluginSettings {
   cacheMaxAge: number; // in milliseconds
   blacklist: string[]; // URLs to exclude
   whitelist: string[]; // URLs to include
-  showTranslationBadge: boolean;
   debugLogging?: boolean;
 }
 

@@ -224,17 +224,6 @@
           <label>
             <input
               type="checkbox"
-              v-model="settings.showTranslationBadge"
-              @change="saveSettings"
-            />
-            显示翻译标记
-          </label>
-        </div>
-
-        <div class="control-group">
-          <label>
-            <input
-              type="checkbox"
               v-model="settings.showFloatingStatusControl"
               @change="saveSettings"
             />
@@ -346,7 +335,6 @@ const settings = ref<PluginSettings>({
   cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
   blacklist: [],
   whitelist: [],
-  showTranslationBadge: true,
   debugLogging: false
 });
 

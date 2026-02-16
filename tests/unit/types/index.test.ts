@@ -127,8 +127,7 @@ describe('Type Definitions', () => {
         cacheEnabled: true,
         cacheMaxAge: 7 * 24 * 60 * 60 * 1000,
         blacklist: [],
-        whitelist: [],
-        showTranslationBadge: true
+        whitelist: []
       };
 
       expect(settings.enabled).toBe(true);
@@ -136,7 +135,6 @@ describe('Type Definitions', () => {
       expect(settings.showFloatingStatusControl).toBe(true);
       expect(settings.targetLanguage).toBe('zh-CN');
       expect(settings.cacheEnabled).toBe(true);
-      expect(settings.showTranslationBadge).toBe(true);
       expect(settings.blacklist).toEqual([]);
       expect(settings.whitelist).toEqual([]);
     });

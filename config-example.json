@@ -22,7 +22,6 @@
       "translate.google.com",
       "deepl.com"
     ],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }

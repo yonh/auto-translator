@@ -54,8 +54,7 @@
       "translate.google.com",
       "deepl.com"
     ],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }
 ```
@@ -85,9 +84,6 @@
 ### URL 过滤
 - `blacklist`: 黑名单 URL 列表
 - `whitelist`: 白名单 URL 列表
-
-### 显示设置
-- `showTranslationBadge`: 是否显示翻译标记
 
 ## 常见问题
 
@@ -175,8 +171,7 @@ A:
     "cacheEnabled": true,
     "cacheMaxAge": 604800000,
     "blacklist": [],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }
 ```
@@ -206,8 +201,7 @@ A:
     "cacheEnabled": true,
     "cacheMaxAge": 604800000,
     "blacklist": [],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }
 ```
@@ -232,8 +226,7 @@ A:
     "cacheEnabled": true,
     "cacheMaxAge": 604800000,
     "blacklist": [],
-    "whitelist": [],
-    "showTranslationBadge": true
+    "whitelist": []
   }
 }
 ```
