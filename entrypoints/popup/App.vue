@@ -242,8 +242,8 @@ async function checkStatus() {
       const response = await browser.tabs.sendMessage(result[0].id, {
         type: 'getStatus'
       });
-      if (response?.status) {
-        status.value = response.status;
+      if (response?.data?.status) {
+        status.value = response.data.status;
       }
     } catch (error) {
       console.error('[Popup] Failed to check status:', error);
@@ -276,7 +276,7 @@ async function saveSettings() {
       try {
         await browser.tabs.sendMessage(tabResult[0].id, {
           type: 'updateSettings',
-          settings: updatedSettings
+          data: updatedSettings
         });
       } catch (error) {
         console.log('[Popup] Content script not reachable, settings saved to storage');
@@ -365,7 +365,7 @@ async function revertTranslation() {
 
   try {
     const response = await browser.tabs.sendMessage(tab.id, {
-      type: 'revertAll'
+      type: 'revertPage'
     });
 
     console.log('[Popup] Revert response:', response);

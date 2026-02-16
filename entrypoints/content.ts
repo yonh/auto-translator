@@ -214,27 +214,7 @@ function updateSettings(updates: Partial<PluginSettings>): Promise<void> {
 
 async function initialize(): Promise<void> {
   currentSettings = await loadSettings();
-
-  if (!currentSettings.enabled) {
-    console.log("[Content Script] Plugin disabled, skipping initialization");
-    return;
-  }
-
-  try {
-    pageManager = new PageTranslationManagerV2(currentSettings);
-    await pageManager.initialize();
-    console.log("[Content Script] Translation manager initialized");
-
-    updateFloatingVisibility();
-
-    await autoTranslateIfEnabled();
-  } catch (error) {
-    console.error(
-      "[Content Script] Failed to initialize translation manager:",
-      error,
-    );
-    pageManager = null;
-  }
+  await syncManagerWithSettings();
 }
 
 /**
@@ -255,6 +235,52 @@ async function autoTranslateIfEnabled(): Promise<void> {
   } catch (error) {
     console.error("[Content Script] Auto translation failed:", error);
   }
+}
+
+function teardownManager(): void {
+  unsubscribeStatus?.();
+  unsubscribeStatus = null;
+  if (floatingControl?.parentElement) {
+    floatingControl.parentElement.removeChild(floatingControl);
+  }
+  floatingControl = null;
+  statusTextEl = null;
+  actionButton = null;
+  revertButton = null;
+  if (pageManager) {
+    pageManager.cancel();
+  }
+  pageManager = null;
+  isTranslated = false;
+}
+
+async function syncManagerWithSettings(): Promise<void> {
+  if (!currentSettings?.enabled) {
+    teardownManager();
+    console.log("[Content Script] Plugin disabled, manager torn down");
+    return;
+  }
+
+  if (!pageManager) {
+    try {
+      pageManager = new PageTranslationManagerV2(currentSettings);
+      await pageManager.initialize();
+      console.log("[Content Script] Translation manager initialized");
+      updateFloatingVisibility();
+      await autoTranslateIfEnabled();
+      return;
+    } catch (error) {
+      console.error(
+        "[Content Script] Failed to initialize translation manager:",
+        error,
+      );
+      pageManager = null;
+      return;
+    }
+  }
+
+  pageManager.updateSettings(currentSettings);
+  updateFloatingVisibility();
 }
 
 /**
@@ -375,6 +401,7 @@ function handleIncomingMessage(message: any): any {
 
     case "REVERT_PAGE":
     case "revertPage":
+    case "revertAll":
       if (!pageManager) {
         console.error("[Content Script] Translation manager not initialized");
         return {
@@ -420,17 +447,12 @@ function handleIncomingMessage(message: any): any {
 
     case "UPDATE_SETTINGS":
     case "updateSettings":
-      currentSettings = { ...currentSettings, ...data };
+      currentSettings = { ...currentSettings, ...(data ?? message.settings ?? {}) };
       console.log(
         "[Content Script] Settings updated in memory:",
         currentSettings,
       );
-
-      if (pageManager) {
-        pageManager.updateSettings(currentSettings);
-      }
-
-      return Promise.resolve({ success: true, id });
+      return syncManagerWithSettings().then(() => ({ success: true, id }));
 
     case "GET_STATUS":
     case "getStatus":
@@ -496,13 +518,7 @@ function handleIncomingMessage(message: any): any {
     case "settingsChanged":
       console.log("[Content Script] Settings changed:", data);
       currentSettings = data.settings;
-
-      if (currentSettings && pageManager) {
-        pageManager.updateSettings(currentSettings);
-        updateFloatingVisibility();
-      }
-
-      return { success: true, id };
+      return syncManagerWithSettings().then(() => ({ success: true, id }));
 
     default:
       console.warn(`[Content Script] Unknown message type: ${type}`);
